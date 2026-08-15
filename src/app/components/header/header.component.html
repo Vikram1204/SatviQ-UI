@@ -1,0 +1,157 @@
+<header 
+  [ngClass]="{
+    'bg-white/80 dark:bg-slate-950/80 py-6': !isScrolled,
+    'bg-white/95 dark:bg-slate-950/95 py-4 shadow-md': isScrolled
+  }"
+  class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md transition-all duration-300 ease-in-out"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between">
+      
+      <!-- Logo Section -->
+      <a href="/" class="flex items-center space-x-3 group">
+        <div class="relative flex items-center justify-center w-11 h-11 rounded-full overflow-hidden border border-emerald-500/30 shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-all duration-300 bg-slate-950">
+          <!-- Logo image: Cropped to show only the animal/clinical circular badge and hide bottom text -->
+          <img 
+            src="/logo.jpg" 
+            alt="SatviQ Logo" 
+            class="absolute w-full h-full object-cover object-top scale-[1.3] -translate-y-[2%]"
+          >
+        </div>
+        <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 dark:from-emerald-400 dark:via-teal-400 dark:to-blue-400 bg-clip-text text-transparent group-hover:from-emerald-500 group-hover:to-blue-500 transition-colors duration-300">
+          SatviQ
+        </span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <a href="#dashboard" class="relative py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-emerald-500 dark:after:bg-emerald-400 after:transition-all after:duration-300 hover:after:w-full">
+          Dashboard
+        </a>
+        <a href="#artificial-insemination" class="relative py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-emerald-500 dark:after:bg-emerald-400 after:transition-all after:duration-300 hover:after:w-full">
+          AI Tracking
+        </a>
+        <a href="#pregnancy-diagnosis" class="relative py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-emerald-500 dark:after:bg-emerald-400 after:transition-all after:duration-300 hover:after:w-full">
+          PD Diagnosis
+        </a>
+        <a href="#cattle-records" class="relative py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-emerald-500 dark:after:bg-emerald-400 after:transition-all after:duration-300 hover:after:w-full">
+          Cattle Directory
+        </a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="hidden md:flex items-center space-x-6">
+        <!-- Dark/Light Theme Toggle (Desktop) -->
+        <button 
+          (click)="toggleTheme()"
+          type="button"
+          class="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          <!-- Sun Icon (visible in Dark Mode) -->
+          <svg *ngIf="isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.22 4.22l1.58 1.58m12.4 12.4l1.58 1.58M3 12h2.25m13.5 0H21M4.22 19.78l1.58-1.58m12.4-12.4l1.58-1.58M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
+          </svg>
+          <!-- Moon Icon (visible in Light Mode) -->
+          <svg *ngIf="!isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+          </svg>
+        </button>
+
+        <a href="#signin" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300">
+          Sign In
+        </a>
+        <a href="#signup" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-slate-900 rounded-lg group bg-gradient-to-br from-emerald-500 to-blue-600 group-hover:from-emerald-400 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-emerald-300 dark:focus:ring-emerald-800 transition-all duration-300 cursor-pointer mt-2">
+          <span class="relative px-5 py-2 transition-all ease-in duration-75 bg-white dark:bg-slate-900 rounded-md group-hover:bg-opacity-0">
+            Get Started
+          </span>
+        </a>
+      </div>
+
+      <!-- Mobile Theme Toggle & Menu Buttons -->
+      <div class="flex md:hidden items-center space-x-2">
+        <!-- Dark/Light Theme Toggle (Mobile) -->
+        <button 
+          (click)="toggleTheme()"
+          type="button"
+          class="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
+          aria-label="Toggle theme"
+        >
+          <!-- Sun Icon (visible in Dark Mode) -->
+          <svg *ngIf="isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.22 4.22l1.58 1.58m12.4 12.4l1.58 1.58M3 12h2.25m13.5 0H21M4.22 19.78l1.58-1.58m12.4-12.4l1.58-1.58M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
+          </svg>
+          <!-- Moon Icon (visible in Light Mode) -->
+          <svg *ngIf="!isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+          </svg>
+        </button>
+
+        <button 
+          (click)="toggleMobileMenu()"
+          type="button" 
+          class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-300"
+          aria-controls="mobile-menu" 
+          [attr.aria-expanded]="isMobileMenuOpen"
+        >
+          <span class="sr-only">Open main menu</span>
+          <!-- Icon when menu is closed -->
+          <svg 
+            [class.hidden]="isMobileMenuOpen" 
+            class="h-6 w-6 transition-all duration-300" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke-width="1.5" 
+            stroke="currentColor" 
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+          <!-- Icon when menu is open -->
+          <svg 
+            [class.hidden]="!isMobileMenuOpen" 
+            class="h-6 w-6 transition-all duration-300" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke-width="1.5" 
+            stroke="currentColor" 
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Menu Dropdown -->
+  <div 
+    [class.hidden]="!isMobileMenuOpen"
+    class="md:hidden border-t border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950/95 backdrop-blur-lg"
+    id="mobile-menu"
+  >
+    <div class="px-2 pt-3 pb-4 space-y-1">
+      <a href="#dashboard" class="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-200">
+        Dashboard
+      </a>
+      <a href="#artificial-insemination" class="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-200">
+        AI Tracking
+      </a>
+      <a href="#pregnancy-diagnosis" class="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-200">
+        PD Diagnosis
+      </a>
+      <a href="#cattle-records" class="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-200">
+        Cattle Directory
+      </a>
+    </div>
+    <div class="pt-4 pb-4 border-t border-slate-200/50 dark:border-slate-800/50 px-4 flex flex-col space-y-3">
+      <a href="#signin" class="w-full text-center py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200">
+        Sign In
+      </a>
+      <a href="#signup" class="w-full text-center py-2.5 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-blue-600 rounded-lg hover:from-emerald-500 hover:to-blue-500 shadow-md shadow-emerald-500/20 transition-all duration-200">
+        Get Started
+      </a>
+    </div>
+  </div>
+</header>
