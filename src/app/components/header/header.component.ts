@@ -1,4 +1,4 @@
-import { Component, HostListener, Inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { Component, HostListener, Inject, PLATFORM_ID, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 @Component({
@@ -8,6 +8,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit {
+  @Input() isSidebarCollapsed = false;
+  @Output() hamburgerClick = new EventEmitter<void>();
+
   isMobileMenuOpen = false;
   isScrolled = false;
   isDarkMode = false;
@@ -32,7 +35,7 @@ export class HeaderComponent implements OnInit {
   }
 
   toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    this.hamburgerClick.emit();
   }
 
   toggleTheme() {

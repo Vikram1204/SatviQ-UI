@@ -1,0 +1,187 @@
+<!-- Mobile Sidebar Backdrop -->
+<div 
+  *ngIf="isOpen" 
+  (click)="onToggleCollapse()" 
+  class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+></div>
+
+<!-- Sidebar Container -->
+<aside 
+  [ngClass]="{
+    'translate-x-0 w-72': isOpen,
+    '-translate-x-full lg:translate-x-0': !isOpen,
+    'lg:w-64': !isCollapsed,
+    'lg:w-20': isCollapsed
+  }"
+  class="fixed inset-y-0 left-0 z-50 flex flex-col h-full bg-white/90 dark:bg-slate-950/90 border-r border-slate-200/60 dark:border-slate-800/60 backdrop-blur-md transition-all duration-300 ease-in-out lg:fixed lg:top-0 lg:bottom-0"
+>
+  <!-- Top Logo Section -->
+  <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200/50 dark:border-slate-800/50 h-[80px] shrink-0">
+    <a href="/" class="flex items-center space-x-3 group overflow-hidden">
+      <div class="relative flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-emerald-500/30 shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-all duration-300 bg-slate-950 shrink-0">
+        <img 
+          src="/logo.jpg" 
+          alt="SatviQ Logo" 
+          class="absolute w-full h-full object-cover object-top scale-[1.3] -translate-y-[2%]"
+        >
+      </div>
+      <span 
+        [ngClass]="{ 
+          'opacity-100 w-auto translate-x-0': !isCollapsed || isOpen, 
+          'opacity-0 w-0 -translate-x-4 pointer-events-none': isCollapsed && !isOpen
+        }"
+        class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 dark:from-emerald-400 dark:via-teal-400 dark:to-blue-400 bg-clip-text text-transparent group-hover:from-emerald-500 group-hover:to-blue-500 transition-all duration-300"
+      >
+        SatviQ
+      </span>
+    </a>
+
+    <!-- Mobile Close Button (only visible on mobile layout when open) -->
+    <button 
+      (click)="closeMobileSidebar.emit()"
+      class="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 lg:hidden"
+      aria-label="Close sidebar"
+    >
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navigation Menu List -->
+  <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1.5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-850">
+    <a 
+      *ngFor="let item of menuItems" 
+      [href]="item.hash"
+      (click)="selectItem(item.id)"
+      [ngClass]="{
+        'bg-gradient-to-r from-emerald-50 to-teal-50/30 dark:from-emerald-950/20 dark:to-teal-950/10 text-emerald-600 dark:text-emerald-400 border-l-4 border-emerald-500 pl-2': activeItem === item.id,
+        'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200 border-l-4 border-transparent pl-3': activeItem !== item.id
+      }"
+      class="group relative flex items-center py-3 rounded-xl transition-all duration-350 cursor-pointer overflow-hidden font-medium text-sm gap-3 select-none"
+      [title]="isCollapsed && !isOpen ? item.label : ''"
+    >
+      <!-- Icon Container -->
+      <div 
+        [ngClass]="{
+          'text-emerald-500 dark:text-emerald-400': activeItem === item.id,
+          'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-355': activeItem !== item.id
+        }"
+        class="flex items-center justify-center w-6 h-6 shrink-0 transition-colors duration-300"
+      >
+        <!-- Angular control flow to switch icons -->
+        <ng-container [ngSwitch]="item.iconName">
+          <!-- Dashboard Icon -->
+          <svg *ngSwitchCase="'dashboard'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"/>
+          </svg>
+
+          <!-- Farmers Icon -->
+          <svg *ngSwitchCase="'farmers'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+
+          <!-- Cattle Icon -->
+          <svg *ngSwitchCase="'cattle'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+          </svg>
+
+          <!-- AI Icon -->
+          <svg *ngSwitchCase="'ai'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+          </svg>
+
+          <!-- PD Icon -->
+          <svg *ngSwitchCase="'pd'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+
+          <!-- Pregnancy Icon -->
+          <svg *ngSwitchCase="'pregnancy'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+
+          <!-- Calving Icon -->
+          <svg *ngSwitchCase="'calving'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+
+          <!-- Family Tree Icon -->
+          <svg *ngSwitchCase="'family-tree'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+
+          <!-- Reports Icon -->
+          <svg *ngSwitchCase="'reports'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+
+          <!-- Bills Icon -->
+          <svg *ngSwitchCase="'bills'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l2 2 4-4m5-8v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2z"/>
+          </svg>
+
+          <!-- SMS Icon -->
+          <svg *ngSwitchCase="'sms'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+        </ng-container>
+      </div>
+
+      <!-- Text Label -->
+      <span 
+        [ngClass]="{ 
+          'opacity-100 translate-x-0 w-auto': !isCollapsed || isOpen, 
+          'opacity-0 -translate-x-4 w-0 pointer-events-none hidden lg:block': isCollapsed && !isOpen
+        }"
+        class="transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden"
+      >
+        {{ item.label }}
+      </span>
+
+      <!-- Badge (optional) -->
+      <span 
+        *ngIf="item.badge && (!isCollapsed || isOpen)"
+        [ngClass]="{
+          'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300': item.badgeType === 'warning',
+          'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.badgeType === 'error',
+          'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': item.badgeType === 'success',
+          'bg-slate-100 text-slate-800 dark:bg-slate-850 dark:text-slate-300': !item.badgeType
+        }"
+        class="absolute right-3 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full min-w-[20px]"
+      >
+        {{ item.badge }}
+      </span>
+    </a>
+  </nav>
+
+  <!-- Bottom Collapse Section (Desktop Only) -->
+  <div class="hidden lg:flex p-4 border-t border-slate-200/50 dark:border-slate-800/50 shrink-0">
+    <button 
+      (click)="onToggleCollapse()"
+      class="flex items-center justify-center w-full py-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
+      [title]="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+    >
+      <!-- Left/Right Chevron depending on collapsed state -->
+      <svg 
+        [ngClass]="{ 'rotate-180': isCollapsed }"
+        class="w-5 h-5 transition-transform duration-300" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        stroke-width="1.5" 
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+      <span 
+        [ngClass]="{ 
+          'opacity-100 w-auto ml-2': !isCollapsed, 
+          'opacity-0 w-0 ml-0 pointer-events-none hidden': isCollapsed 
+        }"
+        class="text-sm font-semibold whitespace-nowrap overflow-hidden transition-all duration-300"
+      >
+        Collapse Menu
+      </span>
+    </button>
+  </div>
+</aside>
