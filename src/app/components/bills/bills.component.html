@@ -1,0 +1,272 @@
+<div class="space-y-6 animate-in fade-in duration-300">
+  
+  <!-- Header & Add Button -->
+  <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Invoicing & Direct Service Bills
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Generate service entries for AI, PD, medicines, and send formatted digital receipts via WhatsApp / SMS.
+      </p>
+    </div>
+    <button (click)="openAddModal()" class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-emerald-500/20 transition-all cursor-pointer space-x-2 shrink-0">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      <span>Create New Bill</span>
+    </button>
+  </div>
+
+  <!-- Bill History Table Card (DEFAULT VIEW) -->
+  <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-5">
+    
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Billing History Log</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Total {{ filteredBills().length }} invoices generated.</p>
+      </div>
+      <div class="relative w-full sm:w-80">
+        <input [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" placeholder="Search bill no, farmer, service, payment..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <th class="py-3 px-4">Bill No / Date</th>
+            <th class="py-3 px-4">Farmer</th>
+            <th class="py-3 px-4">Service</th>
+            <th class="py-3 px-4">Animal</th>
+            <th class="py-3 px-4">Amount</th>
+            <th class="py-3 px-4">Payment</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+          <tr *ngIf="paginatedBills().length === 0">
+            <td colspan="7" class="py-8 text-center text-slate-400 text-sm">No billing records found matching search criteria.</td>
+          </tr>
+          <tr *ngFor="let b of paginatedBills()" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="py-3.5 px-4 font-mono text-xs">
+              <div class="font-bold text-slate-900 dark:text-slate-100">{{ b.billno }}</div>
+              <div class="text-slate-400">{{ b.date }}</div>
+            </td>
+            <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
+              {{ dataService.getFarmerName(b.farmer) }}
+            </td>
+            <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">
+              {{ b.type }}
+            </td>
+            <td class="py-3.5 px-4 text-slate-600 dark:text-slate-400 text-xs">
+              {{ b.animalTag ? (b.animalType + ' - ' + b.animalTag) : '-' }}
+            </td>
+            <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-slate-100">
+              ₹{{ b.amount }}
+            </td>
+            <td class="py-3.5 px-4">
+              <span [ngClass]="{
+                'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': b.payment === 'Paid',
+                'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300': b.payment === 'Pending' || b.payment === 'Partially Paid'
+              }" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold">
+                {{ b.payment }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-right relative whitespace-nowrap">
+              <button 
+                (click)="toggleDropdown(b.id, $event)" 
+                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Actions"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                </svg>
+              </button>
+
+              <!-- 3-Dot Action Dropdown Menu -->
+              <div 
+                *ngIf="activeDropdownId() === b.id" 
+                class="absolute right-4 top-10 w-44 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-30 py-1.5 text-left text-xs space-y-0.5 animate-in fade-in zoom-in-95 duration-150"
+                (click)="$event.stopPropagation()"
+              >
+                <button (click)="viewDetails(b); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>👁</span> <span>View Details</span>
+                </button>
+                <button (click)="sendHistoryBill(b, 'wa'); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>💬</span> <span>WhatsApp Bill</span>
+                </button>
+                <button (click)="sendHistoryBill(b, 'sms'); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>📱</span> <span>SMS Bill</span>
+                </button>
+                <button (click)="editBill(b); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>✏️</span> <span>Edit Bill</span>
+                </button>
+                <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                <button (click)="deleteBill(b); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>🗑</span> <span>Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <app-pagination 
+      [totalItems]="filteredBills().length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event); currentPage.set(1)"
+    ></app-pagination>
+
+  </div>
+
+  <!-- Add / Edit Bill Modal Dialog (with Live Slip Preview) -->
+  <div *ngIf="isFormModalOpen()" class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
+            🧾
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              {{ editingId() ? 'Edit Service Bill' : 'Create New Service Invoice' }}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Generate service entry and send digital slip to farmer</p>
+          </div>
+        </div>
+        <button (click)="closeFormModal()" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Form & Live Preview Split) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 max-h-[70vh] overflow-y-auto pr-1">
+        
+        <!-- Left: Form Inputs (7 cols) -->
+        <div class="lg:col-span-7 space-y-4 text-sm">
+          
+          <!-- Farmer Search & Select -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Farmer *</label>
+            <input [ngModel]="farmerSearch()" (ngModelChange)="farmerSearch.set($event)" placeholder="Search farmer name, mobile..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            <div class="flex flex-wrap gap-1.5 pt-1 max-h-24 overflow-y-auto">
+              <button *ngFor="let f of filteredFarmerResults()" type="button" (click)="selectFarmer(f)" [ngClass]="billForm.farmer === f.id ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all">
+                {{ f.name }} ({{ f.mobile }})
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Service Date *</label>
+              <input [(ngModel)]="billForm.date" (change)="updatePreview()" name="date" type="date" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Service Type *</label>
+              <select [(ngModel)]="billForm.type" (change)="updatePreview()" name="type" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+                <option>AI / Bijdaan</option>
+                <option>Pregnancy Diagnosis</option>
+                <option>Calving Service</option>
+                <option>Medicine / Treatment</option>
+                <option>Vaccination</option>
+                <option>Animal Visit</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cattle Select -->
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Target Cattle (Optional)</label>
+            <div *ngIf="availableFarmerAnimals.length === 0" class="text-xs text-slate-400 italic">
+              {{ billForm.farmer ? 'No cattle registered for this farmer.' : 'Select a farmer first.' }}
+            </div>
+            <div *ngIf="availableFarmerAnimals.length > 0" class="flex flex-wrap gap-1.5">
+              <button *ngFor="let a of availableFarmerAnimals" type="button" (click)="selectAnimal(a)" [ngClass]="billForm.cow === a.id ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all">
+                {{ a.tag }} ({{ a.species }})
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount (₹) *</label>
+              <input [(ngModel)]="billForm.amount" (input)="updatePreview()" name="amount" type="number" min="0" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Status</label>
+              <select [(ngModel)]="billForm.payment" (change)="updatePreview()" name="payment" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+                <option>Paid</option>
+                <option>Pending</option>
+                <option>Partially Paid</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Service Details / Remarks</label>
+            <input [(ngModel)]="billForm.serviceDetails" (input)="updatePreview()" name="serviceDetails" placeholder="e.g. Insemination + antibiotic injection" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+          </div>
+
+        </div>
+
+        <!-- Right: Digital Slip Preview (5 cols) -->
+        <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Digital Receipt Preview</h4>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-semibold">Slip</span>
+          </div>
+
+          <div *ngIf="!previewData" class="py-8 text-center text-slate-400 text-xs">
+            Select a farmer to preview the digital receipt.
+          </div>
+
+          <div *ngIf="previewData" class="text-xs space-y-2 font-mono">
+            <div class="font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-1.5">SATVIQ LIVESTOCK HELPER</div>
+            <div class="flex justify-between"><span class="text-slate-400">Bill:</span> <span class="font-bold">{{ previewData.billno }}</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Farmer:</span> <span class="font-bold">{{ selectedFarmer?.name }}</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Date:</span> <span>{{ previewData.date }}</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Service:</span> <span class="text-emerald-600 font-bold">{{ previewData.type }}</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Animal:</span> <span>{{ previewData.animalTag || '-' }}</span></div>
+            <div class="flex justify-between border-t border-slate-200 dark:border-slate-800 pt-1.5 font-bold"><span class="text-slate-700 dark:text-slate-300">Amount:</span> <span class="text-emerald-600">₹{{ previewData.amount }}</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Status:</span> <span>{{ previewData.payment }}</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-end gap-2.5">
+        <button (click)="closeFormModal()" type="button" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+          Cancel
+        </button>
+        <button (click)="saveBillOnly()" type="button" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 transition-colors">
+          💾 Save Only
+        </button>
+        <button (click)="saveAndSend('sms')" type="button" class="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 transition-all flex items-center space-x-1.5">
+          <span>📱</span>
+          <span>Save & SMS</span>
+        </button>
+        <button (click)="saveAndSend('wa')" type="button" class="px-5 py-2 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-500/20 transition-all flex items-center space-x-1.5">
+          <span>💬</span>
+          <span>Save & WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <app-details-modal [isOpen]="modalOpen" [title]="modalTitle" [fields]="modalFields" (close)="modalOpen = false"></app-details-modal>
+
+</div>

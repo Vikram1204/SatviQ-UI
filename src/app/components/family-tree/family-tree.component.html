@@ -1,0 +1,140 @@
+<div class="space-y-8 animate-in fade-in duration-300">
+  
+  <!-- Header -->
+  <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Pedigree & Family Lineage Tree
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Trace maternal lineage, sire bloodlines, and newborn offspring across breeding generations.
+      </p>
+    </div>
+  </div>
+
+  <!-- Cattle Selector Card -->
+  <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-4">
+    <div class="max-w-md">
+      <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Select Cattle to Inspect Pedigree</label>
+      <select [ngModel]="selectedAnimalId()" (ngModelChange)="selectedAnimalId.set($event)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        <option value="">-- Choose Cattle --</option>
+        <option *ngFor="let a of dataService.animals()" [value]="a.id">
+          {{ a.tag }} ({{ a.species }} - {{ a.breed || 'Standard' }}) • {{ dataService.getFarmerName(a.farmer) }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Pedigree Visualization Card -->
+  <div *ngIf="selectedAnimal" class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-8 shadow-sm space-y-8 animate-in fade-in zoom-in duration-200">
+    
+    <!-- Top Parents Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Mother Card -->
+      <div class="p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-gradient-to-br from-pink-50/50 to-white dark:from-pink-950/20 dark:to-slate-900/40 space-y-2">
+        <div class="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400">
+          <span>👩 Dam (Mother)</span>
+        </div>
+        <div *ngIf="motherAnimal">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">{{ motherAnimal.tag }}</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">{{ motherAnimal.species }} • {{ motherAnimal.breed || 'Standard' }}</p>
+          <p class="text-xs text-slate-400 mt-1">Farmer: {{ dataService.getFarmerName(motherAnimal.farmer) }}</p>
+        </div>
+        <div *ngIf="!motherAnimal" class="text-slate-400 dark:text-slate-500 text-sm italic">
+          {{ selectedAnimal.mother ? ('Tag: ' + selectedAnimal.mother) : 'No mother tag registered' }}
+        </div>
+      </div>
+
+      <!-- Sire Card -->
+      <div class="p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-950/20 dark:to-slate-900/40 space-y-2">
+        <div class="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+          <span>🐂 Sire (Bull / Semen Batch)</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">{{ selectedAnimal.sire || 'Not Recorded' }}</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Artificial Insemination / Natural Service</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Center Line Connector -->
+    <div class="flex justify-center -my-3">
+      <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shadow-lg shadow-emerald-500/30">
+        ↓
+      </div>
+    </div>
+
+    <!-- Target Animal Selected Card -->
+    <div class="p-6 rounded-2xl border-2 border-emerald-500/50 bg-emerald-50/30 dark:bg-emerald-950/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center space-x-4">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl font-bold shadow-md shadow-emerald-600/30">
+          {{ selectedAnimal.species === 'Cow' ? '🐄' : '🐃' }}
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">{{ selectedAnimal.tag }}</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+              {{ selectedAnimal.sex }}
+            </span>
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+            {{ selectedAnimal.breed || selectedAnimal.species }} • Owner: <span class="font-semibold text-slate-800 dark:text-slate-200">{{ dataService.getFarmerName(selectedAnimal.farmer) }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-right">
+        <span class="text-xs font-semibold px-3 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+          DOB: {{ selectedAnimal.dob || 'Unknown' }}
+        </span>
+        <span class="text-xs font-semibold px-3 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+          Status: {{ selectedAnimal.pregnant ? 'Pregnant' : selectedAnimal.status }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Bottom Line Connector -->
+    <div class="flex justify-center -my-3">
+      <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shadow-lg shadow-emerald-500/30">
+        ↓
+      </div>
+    </div>
+
+    <!-- Offspring Section -->
+    <div class="p-6 rounded-2xl border border-slate-200/70 dark:border-slate-800/70 bg-white/50 dark:bg-slate-950/50 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-md font-bold text-slate-900 dark:text-white">Direct Offspring (Calves Born)</h3>
+        <span class="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-semibold text-slate-600 dark:text-slate-400">
+          {{ offspringAnimals.length }} Offspring
+        </span>
+      </div>
+
+      <div *ngIf="offspringAnimals.length === 0" class="text-slate-400 dark:text-slate-500 text-sm py-4 text-center">
+        No offspring registered for this cattle yet.
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div *ngFor="let k of offspringAnimals" class="p-4 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-900/70 flex items-center justify-between">
+          <div>
+            <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">{{ k.tag }}</h4>
+            <p class="text-xs text-slate-400">{{ k.sex }} • Born: {{ k.dob || '-' }}</p>
+          </div>
+          <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-semibold">
+            Calf
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Empty State when nothing selected -->
+  <div *ngIf="!selectedAnimal" class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-12 text-center text-slate-400 space-y-2">
+    <div class="text-4xl">🌳</div>
+    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300">Select Cattle to View Lineage</h3>
+    <p class="text-xs text-slate-400 max-w-sm mx-auto">Choose an animal from the dropdown above to inspect dam lineage, sire history, and registered offspring.</p>
+  </div>
+
+</div>

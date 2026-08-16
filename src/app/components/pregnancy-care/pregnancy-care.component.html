@@ -1,0 +1,111 @@
+<div class="space-y-6 animate-in fade-in duration-300">
+  
+  <!-- Header -->
+  <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Pregnancy Monitoring & Maternal Care
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Cattle confirmed pregnant via clinical PD, expected delivery schedules, and direct farmer reminders.
+      </p>
+    </div>
+  </div>
+
+  <!-- Active Pregnancy Table Card -->
+  <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-5">
+    
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Active Gestating Herd</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Total {{ filteredPregnant().length }} pregnant cattle listed.</p>
+      </div>
+      <div class="relative w-full sm:w-80">
+        <input [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" placeholder="Search tag, farmer, breed..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <th class="py-3 px-4">Cattle Tag</th>
+            <th class="py-3 px-4">Species & Breed</th>
+            <th class="py-3 px-4">Farmer Owner</th>
+            <th class="py-3 px-4">Expected Calving Date</th>
+            <th class="py-3 px-4">Days Remaining</th>
+            <th class="py-3 px-4 text-right">Care Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+          <tr *ngIf="paginatedPregnant().length === 0">
+            <td colspan="6" class="py-8 text-center text-slate-400 text-sm">No pregnant cattle found matching search criteria.</td>
+          </tr>
+          <tr *ngFor="let a of paginatedPregnant()" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="py-3.5 px-4 flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 flex items-center justify-center font-bold text-xs">
+                💖
+              </div>
+              <div class="font-bold text-slate-900 dark:text-slate-100">{{ a.tag }}</div>
+            </td>
+            <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">
+              {{ a.species }} ({{ a.breed || 'Standard' }})
+            </td>
+            <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
+              <div>{{ dataService.getFarmerName(a.farmer) }}</div>
+              <div class="text-xs text-slate-400 font-mono">{{ dataService.getFarmer(a.farmer)?.mobile }}</div>
+            </td>
+            <td class="py-3.5 px-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+              {{ a.due || '-' }}
+            </td>
+            <td class="py-3.5 px-4">
+              <span *ngIf="getDaysRemaining(a.due) !== null" [ngClass]="{
+                'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300': (getDaysRemaining(a.due) || 0) <= 30,
+                'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300': (getDaysRemaining(a.due) || 0) > 30
+              }" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                {{ getDaysRemaining(a.due) }} Days
+              </span>
+              <span *ngIf="getDaysRemaining(a.due) === null" class="text-slate-400">-</span>
+            </td>
+            <td class="py-3.5 px-4 text-right relative whitespace-nowrap">
+              <button 
+                (click)="toggleDropdown(a.id, $event)" 
+                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Actions"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                </svg>
+              </button>
+
+              <!-- 3-Dot Action Dropdown Menu -->
+              <div 
+                *ngIf="activeDropdownId() === a.id" 
+                class="absolute right-4 top-10 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-30 py-1.5 text-left text-xs space-y-0.5 animate-in fade-in zoom-in-95 duration-150"
+                (click)="$event.stopPropagation()"
+              >
+                <button (click)="sendCareReminder(a); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>💬</span> <span>Send WA Reminder</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <app-pagination 
+      [totalItems]="filteredPregnant().length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event); currentPage.set(1)"
+    ></app-pagination>
+
+  </div>
+
+</div>

@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataService } from '../../services/data.service';
 
 export interface MenuItem {
   id: string;
@@ -18,30 +19,38 @@ export interface MenuItem {
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
+  dataService = inject(DataService);
+
   @Input() isOpen = false;
   @Input() isCollapsed = false;
+  @Input() activeItem = 'dashboard';
   
   @Output() toggleCollapse = new EventEmitter<void>();
   @Output() closeMobileSidebar = new EventEmitter<void>();
+  @Output() itemSelected = new EventEmitter<string>();
 
-  activeItem = 'dashboard';
+  get menuItems(): MenuItem[] {
+    return [
+      { id: 'dashboard', label: 'Dashboard', hash: '#dashboard', iconName: 'dashboard' },
+      { id: 'farmers', label: 'Farmers', hash: '#farmers', iconName: 'farmers', badge: this.dataService.totalFarmers() ? String(this.dataService.totalFarmers()) : undefined },
+      { id: 'cattle', label: 'Cattle', hash: '#cattle', iconName: 'cattle', badge: this.dataService.totalAnimals() ? String(this.dataService.totalAnimals()) : undefined },
+      { id: 'ai', label: 'AI/ Bijdaan', hash: '#ai', iconName: 'ai' },
+      { id: 'pd', label: 'PD', hash: '#pd', iconName: 'pd' },
+      { id: 'pregnancy', label: 'Pregnancy', hash: '#pregnancy', iconName: 'pregnancy', badge: this.dataService.totalPregnant() ? String(this.dataService.totalPregnant()) : undefined, badgeType: 'success' },
+      { id: 'calving', label: 'Calving', hash: '#calving', iconName: 'calving' },
+      { id: 'family-tree', label: 'Family Tree', hash: '#family-tree', iconName: 'family-tree' },
+      { id: 'reports', label: 'Reports', hash: '#reports', iconName: 'reports' },
+      { id: 'bills', label: 'Bills', hash: '#bills', iconName: 'bills', badge: this.dataService.totalBills() ? String(this.dataService.totalBills()) : undefined },
+      { id: 'sms', label: 'SMS/ WhatsApp', hash: '#sms', iconName: 'sms' }
+    ];
+  }
 
-  menuItems: MenuItem[] = [
-    { id: 'dashboard', label: 'Dashboard', hash: '#dashboard', iconName: 'dashboard' },
-    { id: 'farmers', label: 'Farmers', hash: '#farmers', iconName: 'farmers' },
-    { id: 'cattle', label: 'Cattle', hash: '#cattle', iconName: 'cattle' },
-    { id: 'ai', label: 'AI/ Bijdaan', hash: '#ai', iconName: 'ai' },
-    { id: 'pd', label: 'PD', hash: '#pd', iconName: 'pd', badge: '18', badgeType: 'warning' },
-    { id: 'pregnancy', label: 'Pregnancy', hash: '#pregnancy', iconName: 'pregnancy' },
-    { id: 'calving', label: 'Calving', hash: '#calving', iconName: 'calving' },
-    { id: 'family-tree', label: 'Family Tree', hash: '#family-tree', iconName: 'family-tree' },
-    { id: 'reports', label: 'Reports', hash: '#reports', iconName: 'reports' },
-    { id: 'bills', label: 'Bills', hash: '#bills', iconName: 'bills' },
-    { id: 'sms', label: 'SMS/ WhatsApp', hash: '#sms', iconName: 'sms' }
-  ];
-
-  selectItem(id: string) {
+  selectItem(id: string, event?: Event) {
+    if (event) {
+      event.preventDefault();
+    }
     this.activeItem = id;
+    this.itemSelected.emit(id);
     this.closeMobileSidebar.emit();
   }
 

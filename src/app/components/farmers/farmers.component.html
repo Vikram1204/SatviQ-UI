@@ -1,0 +1,215 @@
+<div class="space-y-6 animate-in fade-in duration-300">
+  
+  <!-- Top Header & Primary Action Button -->
+  <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Farmer Registration & Directory
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Manage dairy farmers, contacts, Gujarat location assignments, and communication channels.
+      </p>
+    </div>
+    <button (click)="openAddModal()" class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-emerald-500/20 transition-all cursor-pointer space-x-2 shrink-0">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      <span>Add New Farmer</span>
+    </button>
+  </div>
+
+  <!-- Farmers Directory Table Card (DEFAULT VIEW) -->
+  <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-5">
+    
+    <!-- Table Toolbar (Search & Filter) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Registered Farmers</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Total {{ filteredFarmers().length }} farmers listed.</p>
+      </div>
+      <div class="relative w-full sm:w-80">
+        <input [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" placeholder="Search name, phone, village, taluka..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+    </div>
+
+    <!-- Data Grid Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <th class="py-3 px-4">Farmer</th>
+            <th class="py-3 px-4">Mobile</th>
+            <th class="py-3 px-4">Location</th>
+            <th class="py-3 px-4">Cattle Herd</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+          <tr *ngIf="paginatedFarmers().length === 0">
+            <td colspan="5" class="py-8 text-center text-slate-400 text-sm">No farmers found matching the search criteria.</td>
+          </tr>
+          <tr *ngFor="let f of paginatedFarmers()" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900 dark:text-slate-100">{{ f.name }}</div>
+              <div class="text-xs text-slate-400 font-mono">{{ f.id }}</div>
+            </td>
+            <td class="py-3.5 px-4 font-mono text-slate-700 dark:text-slate-300">
+              {{ f.mobile }}
+            </td>
+            <td class="py-3.5 px-4 text-slate-600 dark:text-slate-400">
+              <div>{{ f.village || '-' }}</div>
+              <div class="text-xs text-slate-400">{{ f.taluka ? f.taluka + ', ' : '' }}{{ f.district || '' }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                {{ getCattleCount(f.id) }} Animal{{ getCattleCount(f.id) === 1 ? '' : 's' }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-right relative whitespace-nowrap">
+              <button 
+                (click)="toggleDropdown(f.id, $event)" 
+                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Actions"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                </svg>
+              </button>
+
+              <!-- 3-Dot Action Dropdown Menu -->
+              <div 
+                *ngIf="activeDropdownId() === f.id" 
+                class="absolute right-4 top-10 w-44 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-30 py-1.5 text-left text-xs space-y-0.5 animate-in fade-in zoom-in-95 duration-150"
+                (click)="$event.stopPropagation()"
+              >
+                <button (click)="viewDetails(f); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>👁</span> <span>View Details</span>
+                </button>
+                <button (click)="openWhatsApp(f); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>💬</span> <span>Send WhatsApp</span>
+                </button>
+                <button (click)="editFarmer(f); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>✏️</span> <span>Edit Farmer</span>
+                </button>
+                <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                <button (click)="deleteFarmer(f); closeDropdown()" class="w-full px-3.5 py-2 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center space-x-2 transition-colors cursor-pointer">
+                  <span>🗑</span> <span>Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <app-pagination 
+      [totalItems]="filteredFarmers().length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event); currentPage.set(1)"
+    ></app-pagination>
+
+  </div>
+
+  <!-- Add / Edit Farmer Modal Dialog -->
+  <div *ngIf="isFormModalOpen()" class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-6 animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold">
+            {{ editingId() ? '✏️' : '➕' }}
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              {{ editingId() ? 'Edit Farmer Record' : 'Register New Dairy Farmer' }}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Save farmer contact and Gujarat geographic assignment</p>
+          </div>
+        </div>
+        <button (click)="closeFormModal()" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form (ngSubmit)="saveFarmer()" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm max-h-[65vh] overflow-y-auto pr-1">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Farmer Name *</label>
+          <input [(ngModel)]="farmerForm.name" name="name" required placeholder="e.g. Ramesh Patel" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile Number *</label>
+          <input [(ngModel)]="farmerForm.mobile" name="mobile" required placeholder="10-digit Indian number" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Father / Spouse Name</label>
+          <input [(ngModel)]="farmerForm.relative" name="relative" placeholder="e.g. Dahyabhai" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">District (Gujarat)</label>
+          <select [(ngModel)]="farmerForm.district" (change)="onDistrictChange()" name="district" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            <option value="">Select District</option>
+            <option *ngFor="let d of districts" [value]="d">{{ d.replaceAll('_', ' ') }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Taluka</label>
+          <select [(ngModel)]="farmerForm.taluka" (change)="onTalukaChange()" name="taluka" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            <option value="">Select Taluka</option>
+            <option *ngFor="let t of availableTalukas" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Village</label>
+          <select [(ngModel)]="farmerForm.village" name="village" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            <option value="">Select Village</option>
+            <option *ngFor="let v of availableVillages" [value]="v">{{ v }}</option>
+          </select>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Address</label>
+          <input [(ngModel)]="farmerForm.address" name="address" placeholder="House / street / landmark" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Language</label>
+          <select [(ngModel)]="farmerForm.language" name="language" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+            <option value="Gujarati">Gujarati</option>
+            <option value="Hindi">Hindi</option>
+            <option value="English">English</option>
+          </select>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Notes</label>
+          <textarea [(ngModel)]="farmerForm.notes" name="notes" rows="2" placeholder="Special requirements..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"></textarea>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="sm:col-span-2 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-3">
+          <button (click)="closeFormModal()" type="button" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-500/20 transition-all">
+            {{ editingId() ? 'Update Farmer' : 'Save Farmer' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <app-details-modal [isOpen]="modalOpen" [title]="modalTitle" [fields]="modalFields" (close)="modalOpen = false"></app-details-modal>
+
+</div>

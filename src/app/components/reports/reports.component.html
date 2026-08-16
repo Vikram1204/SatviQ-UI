@@ -1,0 +1,139 @@
+<div class="space-y-6 animate-in fade-in duration-300">
+  
+  <!-- Header -->
+  <div class="border-b border-slate-200/60 dark:border-slate-800/60 pb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Clinical & Financial Reports
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        Comprehensive multi-filter registry combining Inseminations, Pregnancy Diagnoses, Deliveries, and Invoices.
+      </p>
+    </div>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Quick Search</label>
+        <input [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); onFilterChange()" placeholder="Keywords, tag, farmer..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">From Date</label>
+        <input [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event); onFilterChange()" type="date" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">To Date</label>
+        <input [ngModel]="toDate()" (ngModelChange)="toDate.set($event); onFilterChange()" type="date" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Farmer Filter</label>
+        <select [ngModel]="selectedFarmer()" (ngModelChange)="selectedFarmer.set($event); onFilterChange()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+          <option value="">All Farmers</option>
+          <option *ngFor="let f of dataService.farmers()" [value]="f.id">{{ f.name }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Status Filter</label>
+        <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event); onFilterChange()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+          <option value="All">All Statuses</option>
+          <option value="Pregnant">Pregnant</option>
+          <option value="Not Pregnant">Not Pregnant</option>
+          <option value="Recheck">Recheck</option>
+          <option value="Paid">Paid Bills</option>
+          <option value="Pending">Pending Bills</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Export & Print Actions -->
+    <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+      <button (click)="exportCSV()" type="button" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm shadow-md shadow-emerald-500/20 transition-all flex items-center space-x-2 cursor-pointer">
+        <span>📊</span>
+        <span>Export CSV / Excel File</span>
+      </button>
+      <button (click)="printReport()" type="button" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-sm transition-all flex items-center space-x-2 cursor-pointer">
+        <span>🖨️</span>
+        <span>Print Report</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Unified Report Preview Table Card (DEFAULT VIEW) -->
+  <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-6 shadow-sm space-y-5">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white">Report Records Preview</h2>
+      <span class="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-semibold text-slate-600 dark:text-slate-400">
+        {{ reportList().length }} Entries
+      </span>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <th class="py-3 px-4">Event Type</th>
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">Farmer</th>
+            <th class="py-3 px-4">Cattle / Reference</th>
+            <th class="py-3 px-4">Status / Amount</th>
+            <th class="py-3 px-4">Remarks</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+          <tr *ngIf="paginatedReports().length === 0">
+            <td colspan="6" class="py-8 text-center text-slate-400 text-sm">No report entries matching the chosen filters.</td>
+          </tr>
+          <tr *ngFor="let item of paginatedReports()" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="py-3.5 px-4">
+              <span [ngClass]="{
+                'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300': item.type === 'AI',
+                'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300': item.type === 'PD',
+                'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': item.type === 'Calving',
+                'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300': item.type === 'Bill'
+              }" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold font-mono">
+                {{ item.type }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 font-mono text-slate-700 dark:text-slate-300 text-xs font-semibold">
+              {{ item.date }}
+            </td>
+            <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
+              {{ item.farmer }}
+            </td>
+            <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-slate-100 text-xs">
+              {{ item.ref }}
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                {{ item.statusOrAmount }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-slate-500 dark:text-slate-400 text-xs">
+              {{ item.notes || '-' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <app-pagination 
+      [totalItems]="reportList().length" 
+      [pageSize]="pageSize()" 
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event); currentPage.set(1)"
+    ></app-pagination>
+
+  </div>
+
+</div>
