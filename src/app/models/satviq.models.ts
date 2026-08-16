@@ -3,9 +3,12 @@ export interface Farmer {
   name: string;
   mobile: string;
   relative?: string;
-  village?: string;
-  taluka?: string;
+  districtId?: string;
   district?: string;
+  talukaId?: string;
+  taluka?: string;
+  villageId?: string;
+  village?: string;
   address?: string;
   language?: string;
   notes?: string;

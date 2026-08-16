@@ -3,7 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { Farmer } from '../../models/satviq.models';
-import { LOCATION_DATA } from '../../data/location.data';
+import { 
+  District, 
+  Taluka, 
+  Village, 
+  getDistricts, 
+  getTalukasByDistrict, 
+  getVillagesByTaluka, 
+  getDistrictById, 
+  getTalukaById, 
+  getVillageById 
+} from '../../data/location.data';
 import { DetailsModalComponent, DetailField } from '../details-modal/details-modal.component';
 import { PaginationComponent } from '../pagination/pagination.component';
 
@@ -30,18 +40,21 @@ export class FarmersComponent {
     name: '',
     mobile: '',
     relative: '',
+    districtId: '',
     district: '',
+    talukaId: '',
     taluka: '',
+    villageId: '',
     village: '',
     address: '',
     language: 'Gujarati',
     notes: ''
   };
 
-  // Location dropdown options
-  districts: string[] = Object.keys(LOCATION_DATA.Gujarat);
-  availableTalukas: string[] = [];
-  availableVillages: string[] = [];
+  // Location dropdown hierarchy
+  districts: District[] = getDistricts();
+  availableTalukas: Taluka[] = [];
+  availableVillages: Village[] = [];
 
   // Details Modal
   modalOpen = false;
@@ -63,22 +76,43 @@ export class FarmersComponent {
   }
 
   onDistrictChange() {
-    const d = this.farmerForm.district;
-    if (d && LOCATION_DATA.Gujarat[d]) {
-      this.availableTalukas = LOCATION_DATA.Gujarat[d].talukas;
-      this.availableVillages = LOCATION_DATA.Gujarat[d].villages;
+    const dId = this.farmerForm.districtId;
+    if (dId) {
+      const d = getDistrictById(dId);
+      this.farmerForm.district = d ? d.name : '';
+      this.availableTalukas = getTalukasByDistrict(dId);
     } else {
+      this.farmerForm.district = '';
       this.availableTalukas = [];
-      this.availableVillages = [];
     }
+    this.farmerForm.talukaId = '';
     this.farmerForm.taluka = '';
+    this.farmerForm.villageId = '';
     this.farmerForm.village = '';
+    this.availableVillages = [];
   }
 
   onTalukaChange() {
-    const d = this.farmerForm.district;
-    if (d && LOCATION_DATA.Gujarat[d]) {
-      this.availableVillages = LOCATION_DATA.Gujarat[d].villages;
+    const tId = this.farmerForm.talukaId;
+    if (tId) {
+      const t = getTalukaById(tId);
+      this.farmerForm.taluka = t ? t.name : '';
+      this.availableVillages = getVillagesByTaluka(tId);
+    } else {
+      this.farmerForm.taluka = '';
+      this.availableVillages = [];
+    }
+    this.farmerForm.villageId = '';
+    this.farmerForm.village = '';
+  }
+
+  onVillageChange() {
+    const vId = this.farmerForm.villageId;
+    if (vId) {
+      const v = getVillageById(vId);
+      this.farmerForm.village = v ? v.name : '';
+    } else {
+      this.farmerForm.village = '';
     }
   }
 
@@ -120,10 +154,27 @@ export class FarmersComponent {
   editFarmer(f: Farmer) {
     this.editingId.set(f.id);
     this.farmerForm = { ...f };
-    if (f.district && LOCATION_DATA.Gujarat[f.district]) {
-      this.availableTalukas = LOCATION_DATA.Gujarat[f.district].talukas;
-      this.availableVillages = LOCATION_DATA.Gujarat[f.district].villages;
+
+    // Resolve IDs if missing in older records
+    if (f.district && !f.districtId) {
+      const d = this.districts.find(item => item.name.toLowerCase() === f.district?.toLowerCase());
+      if (d) this.farmerForm.districtId = d.id;
     }
+    if (this.farmerForm.districtId) {
+      this.availableTalukas = getTalukasByDistrict(this.farmerForm.districtId);
+      if (f.taluka && !f.talukaId) {
+        const t = this.availableTalukas.find(item => item.name.toLowerCase() === f.taluka?.toLowerCase());
+        if (t) this.farmerForm.talukaId = t.id;
+      }
+    }
+    if (this.farmerForm.talukaId) {
+      this.availableVillages = getVillagesByTaluka(this.farmerForm.talukaId);
+      if (f.village && !f.villageId) {
+        const v = this.availableVillages.find(item => item.name.toLowerCase() === f.village?.toLowerCase());
+        if (v) this.farmerForm.villageId = v.id;
+      }
+    }
+
     this.isFormModalOpen.set(true);
   }
 
@@ -155,7 +206,7 @@ export class FarmersComponent {
       { label: 'Full Name', value: f.name },
       { label: 'Mobile Number', value: f.mobile },
       { label: 'Father / Spouse', value: f.relative },
-      { label: 'District', value: f.district },
+      { label: 'District (Gujarat)', value: f.district },
       { label: 'Taluka', value: f.taluka },
       { label: 'Village', value: f.village },
       { label: 'Full Address', value: f.address },
@@ -174,8 +225,11 @@ export class FarmersComponent {
       name: '',
       mobile: '',
       relative: '',
+      districtId: '',
       district: '',
+      talukaId: '',
       taluka: '',
+      villageId: '',
       village: '',
       address: '',
       language: 'Gujarati',

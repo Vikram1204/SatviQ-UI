@@ -96,9 +96,9 @@ export class DataService {
   private seedInitialData() {
     const now = new Date().toISOString().slice(0, 10);
     const initialFarmers: Farmer[] = [
-      { id: 'FAR-M4K9-1001', name: 'Ramesh Patel', mobile: '9876543210', relative: 'Dahyabhai', village: 'Sanand', taluka: 'Sanand', district: 'Ahmedabad', address: 'Plot 42, Green Farm Road', language: 'Gujarati', notes: 'HF dairy farm', created: now, updated: now },
-      { id: 'FAR-M4K9-1002', name: 'Kishan Rabari', mobile: '9123456780', relative: 'Bhagwanbhai', village: 'Morbi', taluka: 'Morbi', district: 'Morbi', address: 'Rabari Vaas, Nr Primary School', language: 'Gujarati', notes: 'Murrah buffalo breeder', created: now, updated: now },
-      { id: 'FAR-M4K9-1003', name: 'Bhavin Chaudhary', mobile: '9428012345', relative: 'Somabhai', village: 'Unjha', taluka: 'Unjha', district: 'Mehsana', address: 'Kisan Chowk, Main Bazaar', language: 'Gujarati', notes: 'Gir cow farm', created: now, updated: now }
+      { id: 'FAR-M4K9-1001', name: 'Ramesh Patel', mobile: '9876543210', relative: 'Dahyabhai', districtId: 'GJ-AHM', district: 'Ahmedabad', talukaId: 'GJ-AHM-02', taluka: 'Sanand', villageId: 'GJ-AHM-02-01', village: 'Sanand Rural', address: 'Plot 42, Green Farm Road', language: 'Gujarati', notes: 'HF dairy farm', created: now, updated: now },
+      { id: 'FAR-M4K9-1002', name: 'Kishan Rabari', mobile: '9123456780', relative: 'Bhagwanbhai', districtId: 'GJ-MOR', district: 'Morbi', talukaId: 'GJ-MOR-01', taluka: 'Morbi', villageId: 'GJ-MOR-01-01', village: 'Lalpar', address: 'Rabari Vaas, Nr Primary School', language: 'Gujarati', notes: 'Murrah buffalo breeder', created: now, updated: now },
+      { id: 'FAR-M4K9-1003', name: 'Bhavin Chaudhary', mobile: '9428012345', relative: 'Somabhai', districtId: 'GJ-MEH', district: 'Mehsana', talukaId: 'GJ-MEH-03', taluka: 'Unjha', villageId: 'GJ-MEH-03-01', village: 'Unjha Rural', address: 'Kisan Chowk, Main Bazaar', language: 'Gujarati', notes: 'Gir cow farm', created: now, updated: now }
     ];
 
     const initialAnimals: Animal[] = [
