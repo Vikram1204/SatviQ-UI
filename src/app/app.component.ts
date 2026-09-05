@@ -14,7 +14,9 @@ import { FamilyTreeComponent } from './components/family-tree/family-tree.compon
 import { BillsComponent } from './components/bills/bills.component';
 import { SmsMessengerComponent } from './components/sms-messenger/sms-messenger.component';
 import { ReportsComponent } from './components/reports/reports.component';
+import { LoginComponent } from './components/login/login.component';
 import { DataService } from './services/data.service';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -34,7 +36,8 @@ import { DataService } from './services/data.service';
     FamilyTreeComponent,
     BillsComponent,
     SmsMessengerComponent,
-    ReportsComponent
+    ReportsComponent,
+    LoginComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -42,6 +45,7 @@ import { DataService } from './services/data.service';
 export class AppComponent {
   title = 'satviq-ui';
   dataService = inject(DataService);
+  authService = inject(AuthService);
 
   isSidebarCollapsed = false;
   isMobileSidebarOpen = false;

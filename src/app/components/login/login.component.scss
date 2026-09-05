@@ -1,0 +1,125 @@
+/* Login Component Styles */
+
+/* Login card entrance animation */
+.login-card {
+  animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Logo glow effect */
+.logo-glow {
+  animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+  from {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 10px 30px rgba(16, 185, 129, 0.2);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5), 0 10px 40px rgba(16, 185, 129, 0.3);
+  }
+}
+
+/* Error shake animation */
+.error-shake {
+  animation: errorShake 0.4s ease-in-out;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+}
+
+/* Floating particles */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  animation: float linear infinite;
+}
+
+.particle-1 {
+  width: 6px;
+  height: 6px;
+  left: 10%;
+  top: 20%;
+  animation-duration: 15s;
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  width: 4px;
+  height: 4px;
+  left: 80%;
+  top: 40%;
+  animation-duration: 20s;
+  animation-delay: 2s;
+}
+
+.particle-3 {
+  width: 8px;
+  height: 8px;
+  left: 60%;
+  top: 70%;
+  animation-duration: 18s;
+  animation-delay: 4s;
+}
+
+.particle-4 {
+  width: 5px;
+  height: 5px;
+  left: 30%;
+  top: 80%;
+  animation-duration: 22s;
+  animation-delay: 1s;
+}
+
+.particle-5 {
+  width: 3px;
+  height: 3px;
+  left: 90%;
+  top: 10%;
+  animation-duration: 16s;
+  animation-delay: 3s;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-200px) translateX(50px) scale(1.5);
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateY(-400px) translateX(-30px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Input focus ring animation */
+input:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}

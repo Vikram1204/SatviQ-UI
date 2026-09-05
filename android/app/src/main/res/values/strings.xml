@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SatviQ</string>
+    <string name="title_activity_main">SatviQ</string>
+    <string name="package_name">com.satviq.app</string>
+    <string name="custom_url_scheme">com.satviq.app</string>
+</resources>

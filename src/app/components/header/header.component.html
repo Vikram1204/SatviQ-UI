@@ -60,9 +60,42 @@
           </svg>
         </button>
 
-        <a href="#signin" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300">
-          Sign In
-        </a>
+        <!-- User Profile Dropdown -->
+        <div class="relative user-menu-container">
+          <button 
+            (click)="toggleUserMenu()"
+            type="button"
+            class="flex items-center space-x-2.5 p-1.5 pr-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all duration-300 cursor-pointer"
+          >
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+              A
+            </div>
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Admin</span>
+            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" [class.rotate-180]="showUserMenu" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div 
+            *ngIf="showUserMenu"
+            class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/30 py-2 z-50"
+          >
+            <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">Admin</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Doctor / AI Expert</p>
+            </div>
+            <button 
+              (click)="onLogout()"
+              class="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-200 cursor-pointer"
+            >
+              <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Mobile Theme Toggle & Menu Buttons -->
@@ -143,9 +176,24 @@
       </a>
     </div>
     <div class="pt-4 pb-4 border-t border-slate-200/50 dark:border-slate-800/50 px-4 flex flex-col space-y-3">
-      <a href="#signin" class="w-full text-center py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200">
-        Sign In
-      </a>
+      <div class="flex items-center space-x-3 px-3 py-2">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+          A
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-slate-900 dark:text-white">Admin</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Doctor / AI Expert</p>
+        </div>
+      </div>
+      <button 
+        (click)="onLogout()"
+        class="w-full flex items-center justify-center space-x-2 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors duration-200 cursor-pointer"
+      >
+        <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+        <span>Logout</span>
+      </button>
 
     </div>
   </div>

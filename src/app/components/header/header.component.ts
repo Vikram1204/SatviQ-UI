@@ -10,11 +10,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 export class HeaderComponent implements OnInit {
   @Input() isSidebarCollapsed = false;
   @Output() hamburgerClick = new EventEmitter<void>();
+  @Output() logoutClick = new EventEmitter<void>();
 
   isMobileMenuOpen = false;
   isScrolled = false;
   isDarkMode = false;
   isBrowser = false;
+  showUserMenu = false;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -34,8 +36,25 @@ export class HeaderComponent implements OnInit {
     }
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-menu-container')) {
+      this.showUserMenu = false;
+    }
+  }
+
   toggleMobileMenu() {
     this.hamburgerClick.emit();
+  }
+
+  toggleUserMenu() {
+    this.showUserMenu = !this.showUserMenu;
+  }
+
+  onLogout() {
+    this.showUserMenu = false;
+    this.logoutClick.emit();
   }
 
   toggleTheme() {
