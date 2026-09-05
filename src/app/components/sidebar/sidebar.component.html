@@ -1,7 +1,7 @@
 <!-- Mobile Sidebar Backdrop -->
 <div 
   *ngIf="isOpen" 
-  (click)="onToggleCollapse()" 
+  (click)="closeMobileSidebar.emit()" 
   class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity duration-300"
 ></div>
 
@@ -15,6 +15,24 @@
   }"
   class="fixed inset-y-0 left-0 z-50 flex flex-col h-full bg-white/90 dark:bg-slate-950/90 border-r border-slate-200/60 dark:border-slate-800/60 backdrop-blur-md transition-all duration-300 ease-in-out lg:fixed lg:top-0 lg:bottom-0"
 >
+  <!-- Floating Collapse/Expand Arrow Button (Top Right of Left Side Panel) -->
+  <button 
+    (click)="onToggleCollapse()"
+    class="hidden lg:flex absolute top-6 -right-3.5 z-50 items-center justify-center w-7 h-7 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:scale-110 focus:outline-none transition-all duration-300 cursor-pointer"
+    [title]="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+    [attr.aria-label]="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+  >
+    <svg 
+      [ngClass]="{ 'rotate-180': isCollapsed }"
+      class="w-4 h-4 transition-transform duration-300" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      stroke-width="2" 
+      stroke="currentColor"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+  </button>
   <!-- Top Logo Section -->
   <div 
     [ngClass]="{
@@ -158,33 +176,4 @@
     </a>
   </nav>
 
-  <!-- Bottom Collapse Section (Desktop Only) -->
-  <div class="hidden lg:flex p-4 border-t border-slate-200/50 dark:border-slate-800/50 shrink-0">
-    <button 
-      (click)="onToggleCollapse()"
-      class="flex items-center justify-center w-full py-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
-      [title]="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
-    >
-      <!-- Left/Right Chevron depending on collapsed state -->
-      <svg 
-        [ngClass]="{ 'rotate-180': isCollapsed }"
-        class="w-5 h-5 transition-transform duration-300" 
-        fill="none" 
-        viewBox="0 0 24 24" 
-        stroke-width="1.5" 
-        stroke="currentColor"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-      </svg>
-      <span 
-        [ngClass]="{ 
-          'opacity-100 w-auto ml-2': !isCollapsed, 
-          'opacity-0 w-0 ml-0 pointer-events-none hidden': isCollapsed 
-        }"
-        class="text-sm font-semibold whitespace-nowrap overflow-hidden transition-all duration-300"
-      >
-        Collapse Menu
-      </span>
-    </button>
-  </div>
 </aside>
