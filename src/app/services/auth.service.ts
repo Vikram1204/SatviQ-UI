@@ -59,6 +59,11 @@ export class AuthService {
   currentRole = signal<RoleApp | null>(null);
 
   isLoggedIn = computed(() => this.currentUser() !== null);
+  isAdmin = computed(() => {
+    const role = this.currentRole();
+    if (!role) return false;
+    return role.id === 'ROLE-ADMIN' || role.permissions.includes('all');
+  });
   user = computed(() => {
     const u = this.currentUser();
     const r = this.currentRole();

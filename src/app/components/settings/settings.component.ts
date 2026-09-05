@@ -5,6 +5,7 @@ import { GoogleAuthService } from '../../services/google-auth.service';
 import { GoogleDriveService, DriveBackupFile } from '../../services/google-drive.service';
 import { SyncEngineService, BackupFrequency } from '../../services/sync-engine.service';
 import { DataService } from '../../services/data.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-settings',
@@ -17,6 +18,7 @@ export class SettingsComponent implements OnInit {
   driveService = inject(GoogleDriveService);
   syncEngine = inject(SyncEngineService);
   dataService = inject(DataService);
+  authService = inject(AuthService);
 
   customClientId = '';
   showClientIdEdit = false;
@@ -32,12 +34,16 @@ export class SettingsComponent implements OnInit {
       this.redirectUriDisplay = window.location.origin.replace(/\/$/, '');
     }
     this.customClientId = this.googleAuth.clientId();
-    if (!this.customClientId || this.customClientId.includes('satviq-google-drive-client-id')) {
+    if (this.authService.isAdmin() && (!this.customClientId || this.customClientId.includes('satviq-google-drive-client-id'))) {
       this.showClientIdEdit = true;
     }
   }
 
   async saveClientId() {
+    if (!this.authService.isAdmin()) {
+      this.dataService.showToast('Only Admin can update Google Account configuration.');
+      return;
+    }
     if (this.customClientId.trim()) {
       await this.googleAuth.setClientId(this.customClientId.trim());
       this.dataService.showToast('Google OAuth Client ID updated.');
@@ -46,6 +52,10 @@ export class SettingsComponent implements OnInit {
   }
 
   async connectGoogle() {
+    if (!this.authService.isAdmin()) {
+      this.dataService.showToast('Only Admin can connect Google Account.');
+      return;
+    }
     const success = await this.googleAuth.loginWithGoogle();
     if (success) {
       this.dataService.showToast('Successfully connected Google Account!');
@@ -56,6 +66,10 @@ export class SettingsComponent implements OnInit {
   }
 
   async disconnectGoogle() {
+    if (!this.authService.isAdmin()) {
+      this.dataService.showToast('Only Admin can disconnect Google Account.');
+      return;
+    }
     if (confirm('Are you sure you want to disconnect your Google Account? Automated cloud backups will be disabled.')) {
       await this.googleAuth.logout();
       this.availableBackups.set([]);

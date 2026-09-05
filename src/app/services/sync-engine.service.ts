@@ -159,6 +159,9 @@ export class SyncEngineService {
       const now = new Date().toISOString();
       await this.saveSettings({ lastBackupTime: now });
 
+      // Automatically prune old backups, keeping only the 5 most recent
+      await this.cleanOldBackups(5);
+
       this.lastSyncStatus.set(`Backup completed successfully at ${new Date().toLocaleTimeString()}`);
       await this.addLog('backup', 'success', `Backup file uploaded successfully (${file.name})`);
       this.isSyncing.set(false);
@@ -173,9 +176,10 @@ export class SyncEngineService {
   }
 
   /**
-   * List available backups from Google Drive
+   * List available backups from Google Drive (auto-prunes backups beyond latest 5)
    */
   async getAvailableBackups(): Promise<DriveBackupFile[]> {
+    await this.cleanOldBackups(5);
     return await this.driveService.listBackups();
   }
 
@@ -263,6 +267,9 @@ export class SyncEngineService {
       };
       await this.driveService.uploadBackup(payload);
 
+      // Automatically prune old backups, keeping only the 5 most recent
+      await this.cleanOldBackups(5);
+
       const now = new Date().toISOString();
       await this.saveSettings({ lastSyncTime: now, lastBackupTime: now });
 
@@ -278,6 +285,34 @@ export class SyncEngineService {
       this.isSyncing.set(false);
       return null;
     }
+  }
+
+  /**
+   * Automatically prune old backups on Google Drive, keeping only the 5 most recent.
+   */
+  async cleanOldBackups(maxToKeep: number = 5): Promise<number> {
+    try {
+      const files = await this.driveService.listBackups();
+      if (files.length > maxToKeep) {
+        const toDelete = files.slice(maxToKeep);
+        let deletedCount = 0;
+        for (const file of toDelete) {
+          try {
+            const success = await this.driveService.deleteBackup(file.id);
+            if (success) deletedCount++;
+          } catch (e) {
+            console.error(`Failed to delete old backup file ${file.id}:`, e);
+          }
+        }
+        if (deletedCount > 0) {
+          await this.addLog('backup', 'success', `Auto-cleaned ${deletedCount} older backup(s) to maintain max limit of ${maxToKeep}`);
+        }
+        return deletedCount;
+      }
+    } catch (e) {
+      console.error('Error while cleaning old backups:', e);
+    }
+    return 0;
   }
 
   /**
