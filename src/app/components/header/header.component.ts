@@ -14,9 +14,29 @@ export class HeaderComponent implements OnInit {
   authService = inject(AuthService);
 
   @Input() isSidebarCollapsed = false;
+  @Input() activeView = 'dashboard';
   @Output() hamburgerClick = new EventEmitter<void>();
   @Output() logoutClick = new EventEmitter<void>();
   @Output() settingsClick = new EventEmitter<void>();
+
+  getPageTitle(): string {
+    const titles: Record<string, string> = {
+      'dashboard': 'Dashboard',
+      'farmers': 'Farmers',
+      'cattle': 'Cattle Directory',
+      'ai': 'AI / Bijdaan Tracking',
+      'pd': 'PD Diagnosis',
+      'pregnancy': 'Pregnancy Care',
+      'calving': 'Calving Records',
+      'family-tree': 'Family Tree',
+      'reports': 'Reports & Analytics',
+      'bills': 'Bills & Invoices',
+      'sms': 'SMS / WhatsApp Messenger',
+      'user-management': 'User & Role Management',
+      'settings': 'Backup & Settings'
+    };
+    return titles[this.activeView] || 'Dashboard';
+  }
 
   isMobileMenuOpen = false;
   isScrolled = false;
