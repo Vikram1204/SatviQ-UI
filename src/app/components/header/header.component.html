@@ -41,13 +41,14 @@
         </a>
       </nav>
 
-      <!-- Action Buttons -->
-      <div class="hidden md:flex items-center space-x-6 ml-auto">
-        <!-- Dark/Light Theme Toggle (Desktop) -->
+      <!-- Action Buttons (Visible on Mobile & Desktop) -->
+      <div class="flex items-center space-x-2 sm:space-x-4 ml-auto">
+        
+        <!-- Dark/Light Theme Toggle -->
         <button 
           (click)="toggleTheme()"
           type="button"
-          class="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
+          class="p-2 sm:p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
           aria-label="Toggle theme"
         >
           <!-- Sun Icon (visible in Dark Mode) -->
@@ -60,17 +61,17 @@
           </svg>
         </button>
 
-        <!-- User Profile Dropdown -->
+        <!-- User Profile Dropdown (Works on Mobile & Desktop) -->
         <div class="relative user-menu-container">
           <button 
             (click)="toggleUserMenu()"
             type="button"
-            class="flex items-center space-x-2.5 p-1.5 pr-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all duration-300 cursor-pointer"
+            class="flex items-center space-x-2 p-1.5 sm:pr-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all duration-300 cursor-pointer"
           >
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
               A
             </div>
-            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Admin</span>
+            <span class="hidden sm:inline text-sm font-medium text-slate-700 dark:text-slate-300">Admin</span>
             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" [class.rotate-180]="showUserMenu" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
             </svg>
@@ -79,7 +80,7 @@
           <!-- Dropdown Menu -->
           <div 
             *ngIf="showUserMenu"
-            class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/30 py-2 z-50"
+            class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-xl shadow-black/10 dark:shadow-black/30 py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
           >
             <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
               <p class="text-sm font-semibold text-slate-900 dark:text-white">Admin</p>
@@ -107,60 +108,19 @@
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Mobile Theme Toggle & Menu Buttons -->
-      <div class="flex md:hidden items-center space-x-2">
-        <!-- Dark/Light Theme Toggle (Mobile) -->
-        <button 
-          (click)="toggleTheme()"
-          type="button"
-          class="p-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 focus:outline-none transition-all duration-300 cursor-pointer"
-          aria-label="Toggle theme"
-        >
-          <!-- Sun Icon (visible in Dark Mode) -->
-          <svg *ngIf="isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.22 4.22l1.58 1.58m12.4 12.4l1.58 1.58M3 12h2.25m13.5 0H21M4.22 19.78l1.58-1.58m12.4-12.4l1.58-1.58M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
-          </svg>
-          <!-- Moon Icon (visible in Light Mode) -->
-          <svg *ngIf="!isDarkMode" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-          </svg>
-        </button>
-
+        <!-- Mobile Hamburger Button -->
         <button 
           (click)="toggleMobileMenu()"
           type="button" 
-          class="inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-300"
-          aria-controls="mobile-menu" 
-          [attr.aria-expanded]="isMobileMenuOpen"
+          class="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 transition-all duration-300 ml-1"
+          aria-label="Open menu"
         >
-          <span class="sr-only">Open main menu</span>
-          <!-- Icon when menu is closed -->
-          <svg 
-            [class.hidden]="isMobileMenuOpen" 
-            class="h-6 w-6 transition-all duration-300" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke-width="1.5" 
-            stroke="currentColor" 
-            aria-hidden="true"
-          >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
-          <!-- Icon when menu is open -->
-          <svg 
-            [class.hidden]="!isMobileMenuOpen" 
-            class="h-6 w-6 transition-all duration-300" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke-width="1.5" 
-            stroke="currentColor" 
-            aria-hidden="true"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
         </button>
+
       </div>
 
     </div>
