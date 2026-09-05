@@ -17,6 +17,7 @@
   <app-header 
     [isSidebarCollapsed]="isSidebarCollapsed" 
     (hamburgerClick)="toggleMobileSidebar()"
+    (settingsClick)="onViewSelected('settings')"
     (logoutClick)="authService.logout()"
   ></app-header>
 

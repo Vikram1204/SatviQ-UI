@@ -11,6 +11,7 @@ export class HeaderComponent implements OnInit {
   @Input() isSidebarCollapsed = false;
   @Output() hamburgerClick = new EventEmitter<void>();
   @Output() logoutClick = new EventEmitter<void>();
+  @Output() settingsClick = new EventEmitter<void>();
 
   isMobileMenuOpen = false;
   isScrolled = false;
@@ -50,6 +51,12 @@ export class HeaderComponent implements OnInit {
 
   toggleUserMenu() {
     this.showUserMenu = !this.showUserMenu;
+  }
+
+  openSettings() {
+    this.showUserMenu = false;
+    this.isMobileMenuOpen = false;
+    this.settingsClick.emit();
   }
 
   onLogout() {

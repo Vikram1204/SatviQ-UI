@@ -41,8 +41,7 @@ export class SidebarComponent {
       { id: 'family-tree', label: 'Family Tree', hash: '#family-tree', iconName: 'family-tree' },
       { id: 'reports', label: 'Reports', hash: '#reports', iconName: 'reports' },
       { id: 'bills', label: 'Bills', hash: '#bills', iconName: 'bills' },
-      { id: 'sms', label: 'SMS/ WhatsApp', hash: '#sms', iconName: 'sms' },
-      { id: 'settings', label: 'Backup & Settings', hash: '#settings', iconName: 'settings' }
+      { id: 'sms', label: 'SMS/ WhatsApp', hash: '#sms', iconName: 'sms' }
     ];
   }
 
