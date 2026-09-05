@@ -88,8 +88,8 @@ export class CattleComponent {
     this.isFormModalOpen.set(true);
   }
 
-  saveAnimal() {
-    const success = this.dataService.saveAnimal(this.animalForm, this.editingId() || undefined);
+  async saveAnimal() {
+    const success = await this.dataService.saveAnimal(this.animalForm, this.editingId() || undefined);
     if (success) {
       this.closeFormModal();
     }

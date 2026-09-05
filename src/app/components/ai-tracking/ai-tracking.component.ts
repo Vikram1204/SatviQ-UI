@@ -74,8 +74,8 @@ export class AiTrackingComponent {
     this.isFormModalOpen.set(true);
   }
 
-  saveAI() {
-    const success = this.dataService.saveAI(this.aiForm, this.editingId() || undefined);
+  async saveAI() {
+    const success = await this.dataService.saveAI(this.aiForm, this.editingId() || undefined);
     if (success) {
       this.closeFormModal();
     }

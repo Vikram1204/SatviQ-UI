@@ -80,8 +80,8 @@ export class CalvingComponent {
     this.isFormModalOpen.set(true);
   }
 
-  saveCalving() {
-    const success = this.dataService.saveCalving(this.calvingForm, this.editingId() || undefined);
+  async saveCalving() {
+    const success = await this.dataService.saveCalving(this.calvingForm, this.editingId() || undefined);
     if (success) {
       this.closeFormModal();
     }

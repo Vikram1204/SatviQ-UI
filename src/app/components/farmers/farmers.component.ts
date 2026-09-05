@@ -144,8 +144,8 @@ export class FarmersComponent {
     this.isFormModalOpen.set(true);
   }
 
-  saveFarmer() {
-    const success = this.dataService.saveFarmer(this.farmerForm, this.editingId() || undefined);
+  async saveFarmer() {
+    const success = await this.dataService.saveFarmer(this.farmerForm, this.editingId() || undefined);
     if (success) {
       this.closeFormModal();
     }

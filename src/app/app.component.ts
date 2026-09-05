@@ -14,9 +14,11 @@ import { FamilyTreeComponent } from './components/family-tree/family-tree.compon
 import { BillsComponent } from './components/bills/bills.component';
 import { SmsMessengerComponent } from './components/sms-messenger/sms-messenger.component';
 import { ReportsComponent } from './components/reports/reports.component';
+import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './components/login/login.component';
 import { DataService } from './services/data.service';
 import { AuthService } from './services/auth.service';
+import { SyncEngineService } from './services/sync-engine.service';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +39,7 @@ import { AuthService } from './services/auth.service';
     BillsComponent,
     SmsMessengerComponent,
     ReportsComponent,
+    SettingsComponent,
     LoginComponent
   ],
   templateUrl: './app.component.html',
@@ -46,10 +49,17 @@ export class AppComponent {
   title = 'satviq-ui';
   dataService = inject(DataService);
   authService = inject(AuthService);
+  syncEngine = inject(SyncEngineService);
 
   isSidebarCollapsed = false;
   isMobileSidebarOpen = false;
   activeView = 'dashboard';
+
+  constructor() {
+    setTimeout(() => {
+      this.syncEngine.checkAndAutoBackup();
+    }, 2000);
+  }
 
   onViewSelected(viewId: string) {
     this.activeView = viewId;

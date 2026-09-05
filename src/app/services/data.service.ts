@@ -1,8 +1,9 @@
 import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Farmer, Animal, AIRecord, PDRecord, CalvingRecord, BillRecord, DatabaseState } from '../models/satviq.models';
+import { db } from '../db/satviq-db';
 
-const STORAGE_KEY = 'satviq_helper_v1';
+const LEGACY_STORAGE_KEY = 'satviq_helper_v1';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class DataService {
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
 
-  // Signals for state
+  // Signals for in-memory state
   farmers = signal<Farmer[]>([]);
   animals = signal<Animal[]>([]);
   ai = signal<AIRecord[]>([]);
@@ -43,7 +44,9 @@ export class DataService {
   });
 
   constructor() {
-    this.loadState();
+    if (this.isBrowser) {
+      this.initDatabase();
+    }
   }
 
   showToast(message: string) {
@@ -55,45 +58,74 @@ export class DataService {
     }, 3000);
   }
 
-  private loadState() {
-    if (!this.isBrowser) return;
+  /**
+   * Initialize Dexie database state & migrate legacy localStorage if needed
+   */
+  async initDatabase() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const db: DatabaseState = JSON.parse(raw);
-        this.farmers.set(db.farmers || []);
-        this.animals.set(db.animals || []);
-        this.ai.set(db.ai || []);
-        this.pd.set(db.pd || []);
-        this.calvings.set(db.calvings || []);
-        this.bills.set(db.bills || []);
-      } else {
-        this.seedInitialData();
+      let farmerList = await db.farmers.toArray();
+      let animalList = await db.animals.toArray();
+      let aiList = await db.ai.toArray();
+      let pdList = await db.pd.toArray();
+      let calvingList = await db.calvings.toArray();
+      let billList = await db.bills.toArray();
+
+      const isEmpty = farmerList.length === 0 && animalList.length === 0;
+
+      if (isEmpty) {
+        // Check for legacy localStorage data to migrate
+        const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (raw) {
+          try {
+            const legacy: DatabaseState = JSON.parse(raw);
+            if (legacy.farmers?.length) await db.farmers.bulkAdd(legacy.farmers);
+            if (legacy.animals?.length) await db.animals.bulkAdd(legacy.animals);
+            if (legacy.ai?.length) await db.ai.bulkAdd(legacy.ai);
+            if (legacy.pd?.length) await db.pd.bulkAdd(legacy.pd);
+            if (legacy.calvings?.length) await db.calvings.bulkAdd(legacy.calvings);
+            if (legacy.bills?.length) await db.bills.bulkAdd(legacy.bills);
+          } catch (e) {
+            console.error('Error migrating legacy localStorage data:', e);
+          }
+        } else {
+          // Seed demo initial data into Dexie
+          await this.seedInitialData();
+        }
+
+        // Re-read after migration / seed
+        farmerList = await db.farmers.toArray();
+        animalList = await db.animals.toArray();
+        aiList = await db.ai.toArray();
+        pdList = await db.pd.toArray();
+        calvingList = await db.calvings.toArray();
+        billList = await db.bills.toArray();
       }
+
+      this.farmers.set(farmerList);
+      this.animals.set(animalList);
+      this.ai.set(aiList);
+      this.pd.set(pdList);
+      this.calvings.set(calvingList);
+      this.bills.set(billList);
     } catch (e) {
-      console.error('Failed to load state from localStorage', e);
-      this.seedInitialData();
+      console.error('Failed to initialize Dexie database:', e);
     }
   }
 
-  private saveState() {
+  /**
+   * Reload all signals from Dexie IndexedDB (used after restore/sync)
+   */
+  async reloadFromDB() {
     if (!this.isBrowser) return;
-    try {
-      const db: DatabaseState = {
-        farmers: this.farmers(),
-        animals: this.animals(),
-        ai: this.ai(),
-        pd: this.pd(),
-        calvings: this.calvings(),
-        bills: this.bills()
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-    } catch (e) {
-      console.error('Failed to save state to localStorage', e);
-    }
+    this.farmers.set(await db.farmers.toArray());
+    this.animals.set(await db.animals.toArray());
+    this.ai.set(await db.ai.toArray());
+    this.pd.set(await db.pd.toArray());
+    this.calvings.set(await db.calvings.toArray());
+    this.bills.set(await db.bills.toArray());
   }
 
-  private seedInitialData() {
+  private async seedInitialData() {
     const now = new Date().toISOString().slice(0, 10);
     const initialFarmers: Farmer[] = [
       { id: 'FAR-M4K9-1001', name: 'Ramesh Patel', mobile: '9876543210', relative: 'Dahyabhai', districtId: 'GJ-AHM', district: 'Ahmedabad', talukaId: 'GJ-AHM-02', taluka: 'Sanand', villageId: 'GJ-AHM-02-01', village: 'Sanand Rural', address: 'Plot 42, Green Farm Road', language: 'Gujarati', notes: 'HF dairy farm', created: now, updated: now },
@@ -116,13 +148,10 @@ export class DataService {
       { id: 'PD-1001', animal: 'ANI-C001', date: '2026-01-25', result: 'Pregnant', method: 'Ultrasound', days: 45, notes: 'Confirmed twin heartbeat', created: now, updated: now }
     ];
 
-    this.farmers.set(initialFarmers);
-    this.animals.set(initialAnimals);
-    this.ai.set(initialAI);
-    this.pd.set(initialPD);
-    this.calvings.set([]);
-    this.bills.set([]);
-    this.saveState();
+    await db.farmers.bulkAdd(initialFarmers);
+    await db.animals.bulkAdd(initialAnimals);
+    await db.ai.bulkAdd(initialAI);
+    await db.pd.bulkAdd(initialPD);
   }
 
   generateId(prefix: string): string {
@@ -154,8 +183,8 @@ export class DataService {
   }
 
   // --- Farmers CRUD ---
-  saveFarmer(farmerData: Partial<Farmer>, editId?: string): boolean {
-    const now = this.getToday();
+  async saveFarmer(farmerData: Partial<Farmer>, editId?: string): Promise<boolean> {
+    const now = new Date().toISOString();
     if (!farmerData.name || !farmerData.mobile) {
       this.showToast('Name and mobile number are required.');
       return false;
@@ -167,8 +196,13 @@ export class DataService {
     }
 
     if (editId) {
-      this.farmers.update(list => list.map(f => f.id === editId ? { ...f, ...farmerData, updated: now } as Farmer : f));
-      this.showToast('Farmer updated successfully.');
+      const existing = await db.farmers.get(editId);
+      if (existing) {
+        const updated: Farmer = { ...existing, ...farmerData, updated: now } as Farmer;
+        await db.farmers.put(updated);
+        this.farmers.update(list => list.map(f => f.id === editId ? updated : f));
+        this.showToast('Farmer updated successfully.');
+      }
     } else {
       const newFarmer: Farmer = {
         id: this.generateId('FAR'),
@@ -184,36 +218,35 @@ export class DataService {
         created: now,
         updated: now
       };
+      await db.farmers.put(newFarmer);
       this.farmers.update(list => [newFarmer, ...list]);
       this.showToast('Farmer registered successfully.');
     }
-    this.saveState();
     return true;
   }
 
-  deleteFarmer(farmerId: string) {
+  async deleteFarmer(farmerId: string) {
+    await db.farmers.delete(farmerId);
     this.farmers.update(list => list.filter(f => f.id !== farmerId));
-    this.saveState();
     this.showToast('Farmer removed.');
   }
 
   // --- Animals CRUD ---
-  saveAnimal(animalData: Partial<Animal>, editId?: string): boolean {
-    const now = this.getToday();
-    if (!animalData.farmer || !animalData.tag) {
-      this.showToast('Farmer and Tag ID are required.');
-      return false;
-    }
-
-    const tagExists = this.animals().some(a => a.tag.toLowerCase() === animalData.tag!.toLowerCase() && a.id !== editId);
-    if (tagExists) {
-      this.showToast('Tag / Animal ID already exists.');
+  async saveAnimal(animalData: Partial<Animal>, editId?: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    if (!animalData.tag || !animalData.farmer) {
+      this.showToast('Tag ID and Farmer owner are required.');
       return false;
     }
 
     if (editId) {
-      this.animals.update(list => list.map(a => a.id === editId ? { ...a, ...animalData, updated: now } as Animal : a));
-      this.showToast('Cattle updated successfully.');
+      const existing = await db.animals.get(editId);
+      if (existing) {
+        const updated: Animal = { ...existing, ...animalData, updated: now } as Animal;
+        await db.animals.put(updated);
+        this.animals.update(list => list.map(a => a.id === editId ? updated : a));
+        this.showToast('Animal record updated.');
+      }
     } else {
       const newAnimal: Animal = {
         id: this.generateId('ANI'),
@@ -227,325 +260,299 @@ export class DataService {
         sire: animalData.sire || '',
         mark: animalData.mark || '',
         notes: animalData.notes || '',
-        status: 'Active',
-        pregnant: false,
+        status: animalData.status || 'Active',
+        pregnant: animalData.pregnant || false,
+        due: animalData.due || '',
         created: now,
         updated: now
       };
+      await db.animals.put(newAnimal);
       this.animals.update(list => [newAnimal, ...list]);
       this.showToast('Cattle registered successfully.');
     }
-    this.saveState();
     return true;
   }
 
-  deleteAnimal(animalId: string) {
+  async deleteAnimal(animalId: string) {
+    await db.animals.delete(animalId);
     this.animals.update(list => list.filter(a => a.id !== animalId));
-    this.saveState();
-    this.showToast('Cattle removed.');
+    this.showToast('Cattle record removed.');
   }
 
   // --- AI Records CRUD ---
-  saveAI(aiData: Partial<AIRecord>, editId?: string): boolean {
-    const now = this.getToday();
-    if (!aiData.animal || !aiData.date) {
-      this.showToast('Cattle and AI Date are required.');
+  async saveAIRecord(recordData: Partial<AIRecord>, editId?: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    if (!recordData.animal || !recordData.date) {
+      this.showToast('Animal tag and AI date are required.');
       return false;
     }
 
     if (editId) {
-      this.ai.update(list => list.map(r => r.id === editId ? { ...r, ...aiData, updated: now } as AIRecord : r));
-      this.showToast('AI record updated.');
+      const existing = await db.ai.get(editId);
+      if (existing) {
+        const updated: AIRecord = { ...existing, ...recordData, updated: now } as AIRecord;
+        await db.ai.put(updated);
+        this.ai.update(list => list.map(r => r.id === editId ? updated : r));
+        this.showToast('AI record updated.');
+      }
     } else {
-      const newAI: AIRecord = {
+      const newRecord: AIRecord = {
         id: this.generateId('AI'),
-        animal: aiData.animal!,
-        date: aiData.date!,
-        tech: aiData.tech || '',
-        bull: aiData.bull || '',
-        batch: aiData.batch || '',
-        attempt: Number(aiData.attempt) || 1,
-        notes: aiData.notes || '',
+        animal: recordData.animal!,
+        date: recordData.date!,
+        tech: recordData.tech || '',
+        bull: recordData.bull || '',
+        batch: recordData.batch || '',
+        attempt: recordData.attempt || 1,
+        notes: recordData.notes || '',
         created: now,
         updated: now
       };
-      this.ai.update(list => [newAI, ...list]);
-      this.showToast('Bijdaan recorded successfully.');
+      await db.ai.put(newRecord);
+      this.ai.update(list => [newRecord, ...list]);
+
+      // Update animal status to AI Follow-up
+      const animal = this.animals().find(a => a.id === recordData.animal);
+      if (animal && !animal.pregnant) {
+        await this.saveAnimal({ status: 'AI Follow-up' }, animal.id);
+      }
+      this.showToast('Insemination record saved.');
     }
-    this.saveState();
     return true;
   }
 
-  deleteAI(aiId: string) {
-    this.ai.update(list => list.filter(r => r.id !== aiId));
-    this.saveState();
-    this.showToast('AI record deleted.');
+  async deleteAIRecord(id: string) {
+    await db.ai.delete(id);
+    this.ai.update(list => list.filter(r => r.id !== id));
+    this.showToast('AI record removed.');
   }
 
   // --- PD Records CRUD ---
-  savePD(pdData: Partial<PDRecord>, editId?: string): boolean {
-    const now = this.getToday();
-    if (!pdData.animal || !pdData.date || !pdData.result) {
-      this.showToast('Cattle, PD Date, and Result are required.');
+  async savePDRecord(recordData: Partial<PDRecord>, editId?: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    if (!recordData.animal || !recordData.date || !recordData.result) {
+      this.showToast('Animal tag, date, and diagnosis result are required.');
       return false;
     }
 
-    const animal = this.animals().find(a => a.id === pdData.animal);
-
     if (editId) {
-      this.pd.update(list => list.map(r => r.id === editId ? { ...r, ...pdData, updated: now } as PDRecord : r));
-      this.showToast('PD record updated.');
+      const existing = await db.pd.get(editId);
+      if (existing) {
+        const updated: PDRecord = { ...existing, ...recordData, updated: now } as PDRecord;
+        await db.pd.put(updated);
+        this.pd.update(list => list.map(r => r.id === editId ? updated : r));
+        this.showToast('PD record updated.');
+      }
     } else {
-      const newPD: PDRecord = {
+      const newRecord: PDRecord = {
         id: this.generateId('PD'),
-        animal: pdData.animal!,
-        date: pdData.date!,
-        result: pdData.result,
-        method: pdData.method || 'Clinical',
-        days: pdData.days ? Number(pdData.days) : undefined,
-        notes: pdData.notes || '',
+        animal: recordData.animal!,
+        date: recordData.date!,
+        result: recordData.result!,
+        method: recordData.method || 'Clinical',
+        days: recordData.days || 60,
+        notes: recordData.notes || '',
         created: now,
         updated: now
       };
-      this.pd.update(list => [newPD, ...list]);
-      this.showToast('PD result saved.');
-    }
+      await db.pd.put(newRecord);
+      this.pd.update(list => [newRecord, ...list]);
 
-    // Update animal reproductive status
-    if (animal) {
-      const isPregnant = pdData.result === 'Pregnant';
-      let due = '';
-      if (isPregnant) {
-        const d = new Date(pdData.date);
-        d.setDate(d.getDate() + 280);
-        due = d.toISOString().slice(0, 10);
+      // Update animal pregnancy status & calculate due date if pregnant
+      const animal = this.animals().find(a => a.id === recordData.animal);
+      if (animal) {
+        if (recordData.result === 'Pregnant') {
+          const gestDays = animal.species === 'Buffalo' ? 310 : 280;
+          const remDays = gestDays - (recordData.days || 60);
+          const dueDate = new Date(Date.now() + remDays * 864e5).toISOString().slice(0, 10);
+          await this.saveAnimal({ pregnant: true, status: 'Pregnant', due: dueDate }, animal.id);
+        } else if (recordData.result === 'Not Pregnant') {
+          await this.saveAnimal({ pregnant: false, status: 'Active', due: '' }, animal.id);
+        } else {
+          await this.saveAnimal({ pregnant: false, status: 'PD Recheck' }, animal.id);
+        }
       }
-      const newStatus = isPregnant ? 'Pregnant' : (pdData.result === 'Not Pregnant' ? 'AI Follow-up' : 'PD Recheck');
-
-      this.animals.update(list => list.map(a => a.id === animal.id ? {
-        ...a,
-        pregnant: isPregnant,
-        status: newStatus,
-        due,
-        updated: now
-      } : a));
+      this.showToast('Pregnancy diagnosis recorded.');
     }
-
-    this.saveState();
     return true;
   }
 
-  deletePD(pdId: string) {
-    this.pd.update(list => list.filter(r => r.id !== pdId));
-    this.saveState();
-    this.showToast('PD record deleted.');
+  async deletePDRecord(id: string) {
+    await db.pd.delete(id);
+    this.pd.update(list => list.filter(r => r.id !== id));
+    this.showToast('PD record removed.');
   }
 
   // --- Calving Records CRUD ---
-  saveCalving(calvingData: Partial<CalvingRecord>, editId?: string): boolean {
-    const now = this.getToday();
-    if (!calvingData.mother || !calvingData.date || !calvingData.tag) {
-      this.showToast('Mother, Date and Calf Tag are required.');
+  async saveCalving(recordData: Partial<CalvingRecord>, editId?: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    if (!recordData.mother || !recordData.date || !recordData.tag) {
+      this.showToast('Mother cattle tag, date, and calf tag are required.');
       return false;
     }
 
     if (editId) {
-      this.calvings.update(list => list.map(c => c.id === editId ? { ...c, ...calvingData, updated: now } as CalvingRecord : c));
-      const calf = this.animals().find(a => a.calvingId === editId);
-      if (calf) {
-        this.animals.update(list => list.map(a => a.id === calf.id ? {
-          ...a,
-          tag: calvingData.tag!,
-          sex: calvingData.sex || 'Female',
-          dob: calvingData.date!,
-          updated: now
-        } : a));
+      const existing = await db.calvings.get(editId);
+      if (existing) {
+        const updated: CalvingRecord = { ...existing, ...recordData, updated: now } as CalvingRecord;
+        await db.calvings.put(updated);
+        this.calvings.update(list => list.map(c => c.id === editId ? updated : c));
+        this.showToast('Calving record updated.');
       }
-      this.showToast('Calving record updated.');
     } else {
-      const mother = this.animals().find(a => a.id === calvingData.mother);
-      const calvingId = this.generateId('CAL');
-
-      const newCalving: CalvingRecord = {
-        id: calvingId,
-        mother: calvingData.mother!,
-        date: calvingData.date!,
-        outcome: calvingData.outcome || 'Normal',
-        tag: calvingData.tag!,
-        sex: calvingData.sex || 'Female',
-        weight: calvingData.weight ? Number(calvingData.weight) : undefined,
-        notes: calvingData.notes || '',
+      const newRecord: CalvingRecord = {
+        id: this.generateId('CALV'),
+        mother: recordData.mother!,
+        date: recordData.date!,
+        outcome: recordData.outcome || 'Normal',
+        tag: recordData.tag!,
+        sex: recordData.sex || 'Female',
+        weight: recordData.weight || 25,
+        notes: recordData.notes || '',
         created: now,
         updated: now
       };
-      this.calvings.update(list => [newCalving, ...list]);
+      await db.calvings.put(newRecord);
+      this.calvings.update(list => [newRecord, ...list]);
 
-      // Automatically register the calf into Animals
-      const newCalf: Animal = {
-        id: this.generateId('CALF'),
-        tag: calvingData.tag!,
-        species: mother?.species || 'Cow',
-        breed: mother?.breed || '',
-        sex: calvingData.sex || 'Female',
-        dob: calvingData.date!,
-        mother: calvingData.mother!,
-        sire: mother?.sire || '',
-        farmer: mother?.farmer || '',
-        status: 'Active',
-        pregnant: false,
-        calvingId,
-        created: now,
-        updated: now
-      };
-      this.animals.update(list => [newCalf, ...list]);
-
-      // Reset mother pregnant status
+      // Update mother status
+      const mother = this.animals().find(a => a.id === recordData.mother);
       if (mother) {
-        this.animals.update(list => list.map(a => a.id === mother.id ? {
-          ...a,
-          pregnant: false,
-          status: 'Calved',
-          due: '',
-          updated: now
-        } : a));
+        await this.saveAnimal({ pregnant: false, status: 'Calved', due: '' }, mother.id);
+        // Automatically register calf in herd
+        await this.saveAnimal({
+          farmer: mother.farmer,
+          tag: recordData.tag!,
+          species: mother.species,
+          sex: recordData.sex || 'Female',
+          mother: mother.id,
+          dob: recordData.date!,
+          status: 'Active'
+        });
       }
-
-      this.showToast('Delivery recorded and calf added to family tree.');
+      this.showToast('Calving & new calf registered successfully.');
     }
-
-    this.saveState();
     return true;
   }
 
-  deleteCalving(calvingId: string) {
-    this.animals.update(list => list.filter(a => a.calvingId !== calvingId));
-    this.calvings.update(list => list.filter(c => c.id !== calvingId));
-    this.saveState();
-    this.showToast('Calving record and associated calf removed.');
+  async deleteCalving(id: string) {
+    await db.calvings.delete(id);
+    this.calvings.update(list => list.filter(c => c.id !== id));
+    this.showToast('Calving record removed.');
   }
 
   // --- Bills CRUD ---
-  saveBill(billData: Partial<BillRecord>, editId?: string): boolean {
-    const now = this.getToday();
-    if (!billData.farmer || !billData.date || !billData.type || billData.amount === undefined) {
-      this.showToast('Farmer, Date, Service Type, and Amount are required.');
+  async saveBill(billData: Partial<BillRecord>, editId?: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    if (!billData.farmer || !billData.type || billData.amount === undefined) {
+      this.showToast('Farmer, service type, and bill amount are required.');
       return false;
     }
 
-    const farmer = this.farmers().find(f => f.id === billData.farmer);
-    const cow = this.animals().find(a => a.id === billData.cow);
-
-    const billno = billData.billno || `BILL-${new Date().getFullYear()}-${String(this.bills().length + 1).padStart(4, '0')}`;
-
-    const completeBill: BillRecord = {
-      id: editId || this.generateId('BILL'),
-      billno,
-      farmer: billData.farmer!,
-      farmerId: farmer?.id || '',
-      date: billData.date!,
-      type: billData.type!,
-      cow: billData.cow,
-      buffalo: billData.buffalo,
-      animalType: cow?.species || '',
-      animalTag: cow?.tag || '',
-      amount: Number(billData.amount),
-      payment: billData.payment || 'Pending',
-      symptoms: billData.symptoms || '',
-      serviceDetails: billData.serviceDetails || '',
-      village: farmer?.village || '',
-      taluka: farmer?.taluka || '',
-      district: farmer?.district || '',
-      address: billData.address || farmer?.address || '',
-      notes: billData.notes || '',
-      sentVia: billData.sentVia || '',
-      created: editId ? (this.bills().find(b => b.id === editId)?.created || now) : now,
-      updated: now
-    };
-
     if (editId) {
-      this.bills.update(list => list.map(b => b.id === editId ? completeBill : b));
-      this.showToast('Bill updated.');
+      const existing = await db.bills.get(editId);
+      if (existing) {
+        const updated: BillRecord = { ...existing, ...billData, updated: now } as BillRecord;
+        await db.bills.put(updated);
+        this.bills.update(list => list.map(b => b.id === editId ? updated : b));
+        this.showToast('Bill invoice updated.');
+      }
     } else {
-      this.bills.update(list => [completeBill, ...list]);
-      this.showToast('Bill saved in history.');
+      const nextNo = (this.bills().length + 1001).toString();
+      const newBill: BillRecord = {
+        id: this.generateId('BILL'),
+        billno: `INV-${nextNo}`,
+        farmer: billData.farmer!,
+        date: billData.date || this.getToday(),
+        type: billData.type!,
+        amount: Number(billData.amount),
+        payment: billData.payment || 'Pending',
+        symptoms: billData.symptoms || '',
+        serviceDetails: billData.serviceDetails || '',
+        created: now,
+        updated: now
+      };
+      await db.bills.put(newBill);
+      this.bills.update(list => [newBill, ...list]);
+      this.showToast('Invoice bill generated successfully.');
     }
-
-    this.saveState();
     return true;
   }
 
-  deleteBill(billId: string) {
-    this.bills.update(list => list.filter(b => b.id !== billId));
-    this.saveState();
-    this.showToast('Bill removed.');
+  async deleteBill(id: string) {
+    await db.bills.delete(id);
+    this.bills.update(list => list.filter(b => b.id !== id));
+    this.showToast('Bill deleted.');
   }
 
-  // --- Communication Helpers ---
-  normalizeIndianMobile(raw?: string): string {
-    const digits = String(raw || '').replace(/\D/g, '');
-    if (digits.startsWith('0091')) return digits.slice(4);
-    if (digits.startsWith('91') && digits.length === 12) return digits.slice(2);
-    if (digits.length === 10) return digits;
-    return '';
+  // --- AI Records Aliases ---
+  async saveAI(recordData: Partial<AIRecord>, editId?: string): Promise<boolean> {
+    return this.saveAIRecord(recordData, editId);
   }
 
-  getWhatsAppUrl(mobile: string, message: string): string {
-    const clean = this.normalizeIndianMobile(mobile);
-    if (!clean) return '';
-    return `https://wa.me/91${clean}?text=${encodeURIComponent(message)}`;
+  async deleteAI(id: string) {
+    return this.deleteAIRecord(id);
   }
 
-  getSMSUrl(mobile: string, message: string): string {
-    const clean = this.normalizeIndianMobile(mobile);
-    if (!clean) return '';
-    return `sms:+91${clean}?body=${encodeURIComponent(message)}`;
+  // --- PD Records Aliases ---
+  async savePD(recordData: Partial<PDRecord>, editId?: string): Promise<boolean> {
+    return this.savePDRecord(recordData, editId);
   }
 
+  async deletePD(id: string) {
+    return this.deletePDRecord(id);
+  }
+
+  // --- Messaging & Export Utilities ---
   generateSimpleBillText(b: BillRecord): string {
-    const farmer = this.getFarmer(b.farmer);
-    const lines = [
-      ['Farmer', farmer?.name || '-'],
-      ['Farmer ID', b.farmerId || farmer?.id || '-'],
-      ['Date', this.formatDisplayDate(b.date)],
-      ['Service', b.type || '-'],
-      ['Animal', b.animalTag ? `${b.animalType} / ${b.animalTag}` : '-'],
-      ['Amount', `₹${b.amount || 0}`],
-      ['Payment', b.payment || '-'],
-      ['Details', b.serviceDetails || '-'],
-      ['Address', b.address || '-'],
-      ['Bill No', b.billno || '-']
-    ];
-    const width = Math.max(...lines.map(x => x[0].length));
-    const rows = lines.map(x => `${x[0].padEnd(width)} : ${x[1]}`);
-    return `SATVIQ HELPER - BILL / SERVICE ENTRY\n\n${rows.join('\n')}\n\nThank you - SatviQ Helper`;
+    const farmerName = this.getFarmerName(b.farmer);
+    return `*SatviQ Dairy Services Invoice*\n` +
+           `Invoice #: ${b.billno}\n` +
+           `Date: ${b.date}\n` +
+           `Farmer: ${farmerName}\n` +
+           `Service: ${b.type}\n` +
+           `Amount: ₹${b.amount}\n` +
+           `Status: ${b.payment}\n` +
+           `Thank you for using SatviQ Services!`;
   }
 
-  formatDisplayDate(s?: string): string {
-    if (!s) return '-';
-    const p = s.split('-');
-    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : s;
+  getWhatsAppUrl(mobile: string, text: string): string {
+    const cleanMobile = (mobile || '').replace(/\D/g, '');
+    const phone = cleanMobile.length === 10 ? `91${cleanMobile}` : cleanMobile;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  }
+
+  getSMSUrl(mobile: string, text: string): string {
+    const cleanMobile = (mobile || '').replace(/\D/g, '');
+    return `sms:${cleanMobile}?body=${encodeURIComponent(text)}`;
   }
 
   exportCSV() {
-    const rows: string[][] = [
-      ['Type', 'ID', 'Farmer', 'Cattle / Ref', 'Date', 'Status / Result', 'Due', 'Amount', 'Notes']
-    ];
+    const data = this.animals().map(a => ({
+      Tag: a.tag,
+      Species: a.species,
+      Farmer: this.getFarmerName(a.farmer),
+      Breed: a.breed || '',
+      Sex: a.sex,
+      Status: a.pregnant ? 'Pregnant' : a.status,
+      Due: a.due || ''
+    }));
 
-    this.farmers().forEach(f => rows.push(['Farmer', f.id, f.name, '', f.created, 'Registered', '', '', f.notes || '']));
-    this.animals().forEach(a => rows.push(['Animal', a.id, this.getFarmerName(a.farmer), a.tag, a.dob || '', a.pregnant ? 'Pregnant' : a.status, a.due || '', '', a.notes || '']));
-    this.ai().forEach(x => rows.push(['AI', x.id, this.getFarmerName(this.getAnimal(x.animal)?.farmer), this.getAnimalTag(x.animal), x.date, 'Recorded', '', '', x.notes || '']));
-    this.pd().forEach(x => rows.push(['PD', x.id, this.getFarmerName(this.getAnimal(x.animal)?.farmer), this.getAnimalTag(x.animal), x.date, x.result, '', '', x.notes || '']));
-    this.calvings().forEach(x => rows.push(['Calving', x.id, this.getFarmerName(this.getAnimal(x.mother)?.farmer), x.tag, x.date, x.outcome, '', '', x.notes || '']));
-    this.bills().forEach(x => rows.push(['Bill', x.id, this.getFarmerName(x.farmer), this.getAnimalTag(x.cow), x.date, x.payment, '', `₹${x.amount}`, x.notes || '']));
+    if (data.length === 0) {
+      this.showToast('No records to export.');
+      return;
+    }
 
-    const csvContent = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(obj => Object.values(obj).map(val => `"${val}"`).join(','));
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
+
+    const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
-    link.href = url;
-    link.download = `SatviQ_Report_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `satviq_cattle_report_${this.getToday()}.csv`);
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
-    this.showToast('CSV report exported successfully.');
+    document.body.removeChild(link);
   }
 }

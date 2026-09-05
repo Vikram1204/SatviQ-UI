@@ -73,8 +73,8 @@ export class PdDiagnosisComponent {
     this.isFormModalOpen.set(true);
   }
 
-  savePD() {
-    const success = this.dataService.savePD(this.pdForm, this.editingId() || undefined);
+  async savePD() {
+    const success = await this.dataService.savePD(this.pdForm, this.editingId() || undefined);
     if (success) {
       this.closeFormModal();
     }

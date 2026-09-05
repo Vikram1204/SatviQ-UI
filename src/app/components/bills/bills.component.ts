@@ -145,19 +145,19 @@ export class BillsComponent {
     this.isFormModalOpen.set(true);
   }
 
-  saveBillOnly() {
+  async saveBillOnly() {
     this.updatePreview();
     if (!this.billForm.farmer || !this.billForm.date || !this.billForm.type || this.billForm.amount === undefined) {
       this.dataService.showToast('Please fill in Farmer, Date, Service Type, and Amount.');
       return;
     }
-    const success = this.dataService.saveBill(this.billForm, this.editingId() || undefined);
+    const success = await this.dataService.saveBill(this.billForm, this.editingId() || undefined);
     if (success) {
       this.closeFormModal();
     }
   }
 
-  saveAndSend(mode: 'wa' | 'sms') {
+  async saveAndSend(mode: 'wa' | 'sms') {
     this.updatePreview();
     if (!this.billForm.farmer || !this.billForm.date || !this.billForm.type || this.billForm.amount === undefined) {
       this.dataService.showToast('Please fill in Farmer, Date, Service Type, and Amount.');
@@ -171,7 +171,7 @@ export class BillsComponent {
     }
 
     this.billForm.sentVia = mode;
-    const success = this.dataService.saveBill(this.billForm, this.editingId() || undefined);
+    const success = await this.dataService.saveBill(this.billForm, this.editingId() || undefined);
     if (!success) return;
 
     const record = this.dataService.bills()[0]; // latest saved bill
