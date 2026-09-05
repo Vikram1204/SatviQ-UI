@@ -1,13 +1,18 @@
-import { Component, HostListener, Inject, PLATFORM_ID, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, HostListener, Inject, PLATFORM_ID, OnInit, Input, Output, EventEmitter, inject, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
+import { ChangePasswordModalComponent } from '../change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, ChangePasswordModalComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit {
+  authService = inject(AuthService);
+
   @Input() isSidebarCollapsed = false;
   @Output() hamburgerClick = new EventEmitter<void>();
   @Output() logoutClick = new EventEmitter<void>();
@@ -18,6 +23,7 @@ export class HeaderComponent implements OnInit {
   isDarkMode = false;
   isBrowser = false;
   showUserMenu = false;
+  isChangePasswordOpen = signal(false);
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -57,6 +63,11 @@ export class HeaderComponent implements OnInit {
     this.showUserMenu = false;
     this.isMobileMenuOpen = false;
     this.settingsClick.emit();
+  }
+
+  openChangePassword() {
+    this.showUserMenu = false;
+    this.isChangePasswordOpen.set(true);
   }
 
   onLogout() {

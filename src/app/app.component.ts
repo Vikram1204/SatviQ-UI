@@ -16,6 +16,7 @@ import { SmsMessengerComponent } from './components/sms-messenger/sms-messenger.
 import { ReportsComponent } from './components/reports/reports.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './components/login/login.component';
+import { UserManagementComponent } from './components/user-management/user-management.component';
 import { DataService } from './services/data.service';
 import { AuthService } from './services/auth.service';
 import { SyncEngineService } from './services/sync-engine.service';
@@ -40,7 +41,8 @@ import { SyncEngineService } from './services/sync-engine.service';
     SmsMessengerComponent,
     ReportsComponent,
     SettingsComponent,
-    LoginComponent
+    LoginComponent,
+    UserManagementComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'

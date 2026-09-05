@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Farmer, Animal, AIRecord, PDRecord, CalvingRecord, BillRecord } from '../models/satviq.models';
+import { Farmer, Animal, AIRecord, PDRecord, CalvingRecord, BillRecord, UserApp, RoleApp } from '../models/satviq.models';
 
 export interface AppSetting {
   key: string;
@@ -24,6 +24,8 @@ export class SatviQDatabase extends Dexie {
   bills!: Table<BillRecord, string>;
   settings!: Table<AppSetting, string>;
   syncLogs!: Table<SyncLog, number>;
+  users!: Table<UserApp, string>;
+  roles!: Table<RoleApp, string>;
 
   constructor() {
     super('SatviQDatabase');
@@ -37,7 +39,9 @@ export class SatviQDatabase extends Dexie {
       calvings: 'id, mother, date, tag, updated',
       bills: 'id, billno, farmer, date, payment, updated',
       settings: 'key',
-      syncLogs: '++id, timestamp, type, status'
+      syncLogs: '++id, timestamp, type, status',
+      users: 'id, username, roleId, status, updated',
+      roles: 'id, name, updated'
     });
   }
 }

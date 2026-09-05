@@ -23,7 +23,7 @@ export class LoginComponent {
     this.showPassword = !this.showPassword;
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.errorMessage.set(null);
 
     if (!this.username.trim() || !this.password.trim()) {
@@ -33,15 +33,17 @@ export class LoginComponent {
 
     this.isLoading.set(true);
 
-    // Simulate a brief loading state for UX
-    setTimeout(() => {
-      const result = this.authService.login(this.username, this.password);
+    try {
+      const result = await this.authService.login(this.username, this.password);
       this.isLoading.set(false);
 
       if (!result.success) {
         this.errorMessage.set(result.message);
         this.password = '';
       }
-    }, 600);
+    } catch (e: any) {
+      this.isLoading.set(false);
+      this.errorMessage.set(e?.message || 'Authentication error');
+    }
   }
 }

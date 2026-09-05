@@ -2,6 +2,8 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
 
+import { AuthService } from '../../services/auth.service';
+
 export interface MenuItem {
   id: string;
   label: string;
@@ -20,6 +22,7 @@ export interface MenuItem {
 })
 export class SidebarComponent {
   dataService = inject(DataService);
+  authService = inject(AuthService);
 
   @Input() isOpen = false;
   @Input() isCollapsed = false;
@@ -30,7 +33,7 @@ export class SidebarComponent {
   @Output() itemSelected = new EventEmitter<string>();
 
   get menuItems(): MenuItem[] {
-    return [
+    const all: MenuItem[] = [
       { id: 'dashboard', label: 'Dashboard', hash: '#dashboard', iconName: 'dashboard' },
       { id: 'farmers', label: 'Farmers', hash: '#farmers', iconName: 'farmers' },
       { id: 'cattle', label: 'Cattle', hash: '#cattle', iconName: 'cattle' },
@@ -41,8 +44,10 @@ export class SidebarComponent {
       { id: 'family-tree', label: 'Family Tree', hash: '#family-tree', iconName: 'family-tree' },
       { id: 'reports', label: 'Reports', hash: '#reports', iconName: 'reports' },
       { id: 'bills', label: 'Bills', hash: '#bills', iconName: 'bills' },
-      { id: 'sms', label: 'SMS/ WhatsApp', hash: '#sms', iconName: 'sms' }
+      { id: 'sms', label: 'SMS/ WhatsApp', hash: '#sms', iconName: 'sms' },
+      { id: 'user-management', label: 'User & Roles', hash: '#user-management', iconName: 'user-management' }
     ];
+    return all.filter(item => this.authService.hasPermission(item.id));
   }
 
   selectItem(id: string, event?: Event) {

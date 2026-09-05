@@ -99,6 +99,27 @@ export interface BillRecord {
   updated: string;
 }
 
+export interface RoleApp {
+  id: string;
+  name: string;
+  description?: string;
+  permissions: string[];
+  isSystem?: boolean;
+  created: string;
+  updated: string;
+}
+
+export interface UserApp {
+  id: string;
+  username: string;
+  passwordHash: string;
+  name: string;
+  roleId: string;
+  status: 'Active' | 'Inactive';
+  created: string;
+  updated: string;
+}
+
 export interface DatabaseState {
   farmers: Farmer[];
   animals: Animal[];
@@ -106,4 +127,6 @@ export interface DatabaseState {
   pd: PDRecord[];
   calvings: CalvingRecord[];
   bills: BillRecord[];
+  users?: UserApp[];
+  roles?: RoleApp[];
 }

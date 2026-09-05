@@ -31,21 +31,39 @@
     <div class="max-w-7xl mx-auto">
       
       <!-- Dynamic View Switcher -->
-      <ng-container [ngSwitch]="activeView">
-        <app-dashboard *ngSwitchCase="'dashboard'"></app-dashboard>
-        <app-farmers *ngSwitchCase="'farmers'"></app-farmers>
-        <app-cattle *ngSwitchCase="'cattle'"></app-cattle>
-        <app-ai-tracking *ngSwitchCase="'ai'"></app-ai-tracking>
-        <app-pd-diagnosis *ngSwitchCase="'pd'"></app-pd-diagnosis>
-        <app-pregnancy-care *ngSwitchCase="'pregnancy'"></app-pregnancy-care>
-        <app-calving *ngSwitchCase="'calving'"></app-calving>
-        <app-family-tree *ngSwitchCase="'family-tree'"></app-family-tree>
-        <app-reports *ngSwitchCase="'reports'"></app-reports>
-        <app-bills *ngSwitchCase="'bills'"></app-bills>
-        <app-sms-messenger *ngSwitchCase="'sms'"></app-sms-messenger>
-        <app-settings *ngSwitchCase="'settings'"></app-settings>
-        <app-dashboard *ngSwitchDefault></app-dashboard>
+      <ng-container *ngIf="authService.hasPermission(activeView); else permissionDenied">
+        <ng-container [ngSwitch]="activeView">
+          <app-dashboard *ngSwitchCase="'dashboard'"></app-dashboard>
+          <app-farmers *ngSwitchCase="'farmers'"></app-farmers>
+          <app-cattle *ngSwitchCase="'cattle'"></app-cattle>
+          <app-ai-tracking *ngSwitchCase="'ai'"></app-ai-tracking>
+          <app-pd-diagnosis *ngSwitchCase="'pd'"></app-pd-diagnosis>
+          <app-pregnancy-care *ngSwitchCase="'pregnancy'"></app-pregnancy-care>
+          <app-calving *ngSwitchCase="'calving'"></app-calving>
+          <app-family-tree *ngSwitchCase="'family-tree'"></app-family-tree>
+          <app-reports *ngSwitchCase="'reports'"></app-reports>
+          <app-bills *ngSwitchCase="'bills'"></app-bills>
+          <app-sms-messenger *ngSwitchCase="'sms'"></app-sms-messenger>
+          <app-user-management *ngSwitchCase="'user-management'"></app-user-management>
+          <app-settings *ngSwitchCase="'settings'"></app-settings>
+          <app-dashboard *ngSwitchDefault></app-dashboard>
+        </ng-container>
       </ng-container>
+
+      <ng-template #permissionDenied>
+        <div class="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl text-center shadow-lg">
+          <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Access Restricted</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6">You do not have permission to view this section. Please contact your system administrator to request screen access.</p>
+          <button (click)="activeView = 'dashboard'" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md">
+            Return to Dashboard
+          </button>
+        </div>
+      </ng-template>
 
     </div>
   </main>
