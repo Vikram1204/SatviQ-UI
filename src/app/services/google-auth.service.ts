@@ -104,13 +104,14 @@ export class GoogleAuthService {
 
     return new Promise((resolve) => {
       const scope = encodeURIComponent('openid email profile https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file');
-      const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+      const origin = window.location.origin.replace(/\/$/, '');
+      const redirectUri = encodeURIComponent(origin);
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(this.clientId())}` +
         `&redirect_uri=${redirectUri}` +
         `&response_type=token` +
         `&scope=${scope}` +
-        `&prompt=consent`;
+        `&prompt=select_account%20consent`;
 
       // Open OAuth popup window
       const width = 500;

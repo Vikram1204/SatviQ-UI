@@ -66,14 +66,41 @@
           </button>
         </div>
 
-        <!-- Advanced Client ID toggle -->
-        <div class="border-t border-slate-100 dark:border-slate-800 pt-3">
-          <button (click)="showClientIdEdit = !showClientIdEdit" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1">
-            <span>⚙️</span> <span>OAuth Client ID Config</span>
+        <!-- Advanced Client ID Config & Setup Guide -->
+        <div class="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-3">
+          <button (click)="showClientIdEdit = !showClientIdEdit" class="w-full flex items-center justify-between text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-semibold cursor-pointer">
+            <span class="flex items-center gap-1.5">🔑 <span>OAuth Client ID Setup</span></span>
+            <span>{{ showClientIdEdit ? '▲ Hide' : '▼ Edit' }}</span>
           </button>
-          <div *ngIf="showClientIdEdit" class="mt-2 space-y-2 animate-in fade-in duration-200">
-            <input [(ngModel)]="customClientId" placeholder="Google Client ID..." class="w-full px-3 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
-            <button (click)="saveClientId()" class="px-3 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-lg">Save Client ID</button>
+          
+          <div *ngIf="showClientIdEdit" class="space-y-3 animate-in fade-in duration-200 text-xs">
+            <div *ngIf="customClientId.includes('satviq-google-drive-client-id')" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 space-y-1">
+              <div class="font-bold flex items-center gap-1">⚠️ Action Needed:</div>
+              <div>Google requires a valid OAuth Client ID from your Google Cloud Console to log in.</div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Google OAuth Client ID</label>
+              <input [(ngModel)]="customClientId" placeholder="e.g. 123456789-abc.apps.googleusercontent.com" class="w-full px-3 py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+
+            <button (click)="saveClientId()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-xs shadow-sm transition-all">
+              Save Client ID
+            </button>
+
+            <!-- Quick Setup Guide -->
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800/50 space-y-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+              <div class="font-bold text-slate-800 dark:text-slate-200">How to get a free Google Client ID:</div>
+              <ol class="list-decimal list-inside space-y-1 leading-relaxed">
+                <li>Go to <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-500 underline">Google Cloud Console</a>.</li>
+                <li>Create a project & go to <b>APIs & Services > Credentials</b>.</li>
+                <li>Click <b>Create Credentials > OAuth Client ID</b>.</li>
+                <li>Add <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded text-emerald-600 dark:text-emerald-400 font-mono">{{ redirectUriDisplay }}</code> under both <b>Authorized Javascript origins</b> & <b>Authorized redirect URIs</b>.</li>
+                <li>Enable <b>Google Drive API</b> in Library.</li>
+                <li>Under <b>OAuth consent screen > Test users</b>, add your Google email address (or click <b>Publish App</b>).</li>
+                <li>Copy the Client ID and paste it above!</li>
+              </ol>
+            </div>
           </div>
         </div>
       </div>

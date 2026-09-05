@@ -25,8 +25,16 @@ export class SettingsComponent implements OnInit {
   isLoadingBackups = signal<boolean>(false);
   restoringFileId = signal<string | null>(null);
 
+  redirectUriDisplay = '';
+
   ngOnInit() {
+    if (typeof window !== 'undefined') {
+      this.redirectUriDisplay = window.location.origin.replace(/\/$/, '');
+    }
     this.customClientId = this.googleAuth.clientId();
+    if (!this.customClientId || this.customClientId.includes('satviq-google-drive-client-id')) {
+      this.showClientIdEdit = true;
+    }
   }
 
   async saveClientId() {
