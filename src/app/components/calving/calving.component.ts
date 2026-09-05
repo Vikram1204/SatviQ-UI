@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { CalvingRecord, Animal } from '../../models/satviq.models';
 import { PaginationComponent } from '../pagination/pagination.component';
+import { BarcodeScannerComponent } from '../barcode-scanner/barcode-scanner.component';
 
 @Component({
   selector: 'app-calving',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, BarcodeScannerComponent],
   templateUrl: './calving.component.html'
 })
 export class CalvingComponent {
@@ -18,6 +19,7 @@ export class CalvingComponent {
   editingId = signal<string | null>(null);
   isFormModalOpen = signal(false);
   activeDropdownId = signal<string | null>(null);
+  isScannerOpen = signal(false);
 
   // Pagination
   currentPage = signal(1);
@@ -114,5 +116,18 @@ export class CalvingComponent {
       weight: 25,
       notes: ''
     };
+  }
+
+  openScanner() {
+    this.isScannerOpen.set(true);
+  }
+
+  onBarcodeScanned(value: string) {
+    this.calvingForm.tag = value;
+    this.isScannerOpen.set(false);
+  }
+
+  closeScanner() {
+    this.isScannerOpen.set(false);
   }
 }

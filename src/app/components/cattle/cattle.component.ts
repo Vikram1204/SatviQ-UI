@@ -5,11 +5,12 @@ import { DataService } from '../../services/data.service';
 import { Animal } from '../../models/satviq.models';
 import { DetailsModalComponent, DetailField } from '../details-modal/details-modal.component';
 import { PaginationComponent } from '../pagination/pagination.component';
+import { BarcodeScannerComponent } from '../barcode-scanner/barcode-scanner.component';
 
 @Component({
   selector: 'app-cattle',
   standalone: true,
-  imports: [CommonModule, FormsModule, DetailsModalComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, DetailsModalComponent, PaginationComponent, BarcodeScannerComponent],
   templateUrl: './cattle.component.html'
 })
 export class CattleComponent {
@@ -19,6 +20,8 @@ export class CattleComponent {
   editingId = signal<string | null>(null);
   isFormModalOpen = signal(false);
   activeDropdownId = signal<string | null>(null);
+  isScannerOpen = signal(false);
+  isSearchScannerOpen = signal(false);
 
   // Pagination
   currentPage = signal(1);
@@ -145,5 +148,31 @@ export class CattleComponent {
       mark: '',
       notes: ''
     };
+  }
+
+  openScanner() {
+    this.isScannerOpen.set(true);
+  }
+
+  onBarcodeScanned(value: string) {
+    this.animalForm.tag = value;
+    this.isScannerOpen.set(false);
+  }
+
+  closeScanner() {
+    this.isScannerOpen.set(false);
+  }
+
+  openSearchScanner() {
+    this.isSearchScannerOpen.set(true);
+  }
+
+  onSearchBarcodeScanned(value: string) {
+    this.onSearchChange(value);
+    this.isSearchScannerOpen.set(false);
+  }
+
+  closeSearchScanner() {
+    this.isSearchScannerOpen.set(false);
   }
 }
